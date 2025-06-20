@@ -4,7 +4,7 @@ import { LucideIcon } from 'lucide-react';
 interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg';
-  children: React.ReactNode;
+  children?: React.ReactNode; // ✅ Ahora es opcional
   onClick?: () => void;
   disabled?: boolean;
   loading?: boolean;
@@ -39,6 +39,15 @@ const Button: React.FC<ButtonProps> = ({
     lg: 'px-6 py-3 text-base'
   };
 
+  // ✅ Ajustar padding cuando solo hay icono
+  const iconOnlyClasses = Icon && !children ? {
+    sm: 'p-1.5',
+    md: 'p-2',
+    lg: 'p-3'
+  } : {};
+
+  const finalSizeClasses = Icon && !children ? iconOnlyClasses[size] : sizeClasses[size];
+
   const disabledClasses = disabled || loading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.02] active:scale-[0.98]';
 
   return (
@@ -46,13 +55,13 @@ const Button: React.FC<ButtonProps> = ({
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
-      className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${disabledClasses} ${className}`}
+      className={`${baseClasses} ${variantClasses[variant]} ${finalSizeClasses} ${disabledClasses} ${className}`}
     >
       {loading && (
-        <span className="mr-2 animate-spin">⚙️</span>
+        <span className={`animate-spin ${children ? 'mr-2' : ''}`}>⚙️</span>
       )}
       {Icon && !loading && (
-        <Icon className="w-4 h-4 mr-2" />
+        <Icon className={`w-4 h-4 ${children ? 'mr-2' : ''}`} />
       )}
       {children}
     </button>
