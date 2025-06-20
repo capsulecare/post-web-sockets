@@ -23,6 +23,7 @@ interface UsePostsReturn {
   error: string | null;
   fetchPosts: () => Promise<void>;
   handleReaction: (postId: string, reactionType: string) => Promise<void>;
+  handleCommentReaction: (commentId: string, reactionType: string) => Promise<void>; // ✅ NUEVO
 }
 
 export const usePosts = ({ currentUserId }: UsePostsOptions): UsePostsReturn => {
@@ -31,7 +32,7 @@ export const usePosts = ({ currentUserId }: UsePostsOptions): UsePostsReturn => 
   const [error, setError] = useState<string | null>(null);
 
   // Hook para manejar reacciones
-  const { handleReaction } = useReactions({ currentUserId });
+  const { handlePostReaction, handleCommentReaction } = useReactions({ currentUserId });
 
   // Función para cargar posts
   const loadPosts = useCallback(async () => {
@@ -146,6 +147,7 @@ export const usePosts = ({ currentUserId }: UsePostsOptions): UsePostsReturn => 
     loading, 
     error, 
     fetchPosts: loadPosts, 
-    handleReaction 
+    handleReaction: handlePostReaction, // Para posts
+    handleCommentReaction // ✅ NUEVO: Para comentarios
   };
 };

@@ -8,9 +8,14 @@ import { Reply, MoreHorizontal } from 'lucide-react';
 interface CommentCardProps {
   comment: Comment;
   isReply?: boolean;
+  onReaction?: (commentId: string, reactionType: string) => void; // ✅ NUEVO: Prop para manejar reacciones
 }
 
-const CommentCard: React.FC<CommentCardProps> = ({ comment, isReply = false }) => {
+const CommentCard: React.FC<CommentCardProps> = ({ 
+  comment, 
+  isReply = false, 
+  onReaction // ✅ NUEVO
+}) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [showReplies, setShowReplies] = useState(false);
   const [newReply, setNewReply] = useState('');
@@ -26,8 +31,14 @@ const CommentCard: React.FC<CommentCardProps> = ({ comment, isReply = false }) =
     return `${Math.floor(diffInMinutes / 1440)}d`;
   };
 
+  // ✅ ARREGLADO: Ahora llama a la función real de reacción
   const handleReaction = (reactionType: string) => {
-    console.log('Reacción a comentario:', comment.id, reactionType);
+    console.log('🎯 Reacción a comentario:', comment.id, reactionType);
+    if (onReaction) {
+      onReaction(comment.id, reactionType);
+    } else {
+      console.warn('⚠️ No se proporcionó función onReaction para el comentario');
+    }
   };
 
   const handleSubmitReply = (e: React.FormEvent) => {
@@ -94,7 +105,7 @@ const CommentCard: React.FC<CommentCardProps> = ({ comment, isReply = false }) =
               <ReactionButton
                 currentReaction={comment.userReaction || null}
                 reactions={comment.reactions}
-                onReaction={handleReaction}
+                onReaction={handleReaction} // ✅ ARREGLADO: Ahora pasa la función real
               />
               
               {!isReply && (
@@ -163,7 +174,12 @@ const CommentCard: React.FC<CommentCardProps> = ({ comment, isReply = false }) =
                     Ocultar respuestas
                   </Button>
                   {replies.map((reply) => (
-                    <CommentCard key={reply.id} comment={reply} isReply={true} />
+                    <CommentCard 
+                      key={reply.id} 
+                      comment={reply} 
+                      isReply={true}
+                      onReaction={onReaction} // ✅ NUEVO: Pasar la función a las respuestas también
+                    />
                   ))}
                 </div>
               )}

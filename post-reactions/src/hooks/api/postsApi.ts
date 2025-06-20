@@ -18,16 +18,19 @@ export const fetchPosts = async (currentUserId: string | null): Promise<Post[]> 
 };
 
 /**
- * Envía una reacción al backend
+ * Envía una reacción al backend (POST o COMMENT)
  */
 export const sendReaction = async (
   currentUserId: string,
-  postId: string,
+  targetId: string,
+  targetType: 'POST' | 'COMMENT',
   reactionType: string,
   reactionTypeId: number
 ): Promise<void> => {
+  console.log(`🚀 Enviando reacción: ${reactionType} (ID: ${reactionTypeId}) para ${targetType} ${targetId} con usuario ${currentUserId}`);
+  
   const response = await fetch(
-    `${API_BASE_URL}/reactions?userId=${currentUserId}&targetId=${postId}&targetType=POST&reactionTypeId=${reactionTypeId}`,
+    `${API_BASE_URL}/reactions?userId=${currentUserId}&targetId=${targetId}&targetType=${targetType}&reactionTypeId=${reactionTypeId}`,
     {
       method: 'POST',
       headers: {
@@ -36,10 +39,14 @@ export const sendReaction = async (
     }
   );
 
+  console.log(`📡 Respuesta del servidor: ${response.status} ${response.statusText}`);
+
   if (!response.ok && response.status !== 409) {
     const errorText = await response.text();
     throw new Error(`Fallo al enviar la reacción: ${response.status} ${response.statusText} - ${errorText}`);
   }
+
+  console.log(`✅ Reacción ${targetType} enviada exitosamente!`);
 };
 
 /**

@@ -9,9 +9,14 @@ import CommentSection from '../comment/CommentSection';
 interface PostCardProps {
   post: Post;
   onReaction: (postId: string, reactionType: string) => void;
+  onCommentReaction?: (commentId: string, reactionType: string) => void; // ✅ NUEVO
 }
 
-const PostCard: React.FC<PostCardProps> = ({ post, onReaction }) => {
+const PostCard: React.FC<PostCardProps> = ({ 
+  post, 
+  onReaction, 
+  onCommentReaction // ✅ NUEVO
+}) => {
   const [showComments, setShowComments] = useState(false);
 
   const handleReaction = (reactionType: string) => {
@@ -42,7 +47,11 @@ const PostCard: React.FC<PostCardProps> = ({ post, onReaction }) => {
       />
 
       {showComments && (
-        <CommentSection comments={post.comments} postId={post.id} />
+        <CommentSection 
+          comments={post.comments} 
+          postId={post.id}
+          onCommentReaction={onCommentReaction} // ✅ NUEVO: Pasar la función
+        />
       )}
     </article>
   );

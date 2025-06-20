@@ -6,9 +6,14 @@ import CommentForm from './CommentForm';
 interface CommentSectionProps {
   comments: Comment[];
   postId: string;
+  onCommentReaction?: (commentId: string, reactionType: string) => void; // ✅ NUEVO
 }
 
-const CommentSection: React.FC<CommentSectionProps> = ({ comments, postId }) => {
+const CommentSection: React.FC<CommentSectionProps> = ({ 
+  comments, 
+  postId, 
+  onCommentReaction // ✅ NUEVO
+}) => {
   const [commentsList, setCommentsList] = useState(comments);
 
   const handleNewComment = (content: string) => {
@@ -35,7 +40,11 @@ const CommentSection: React.FC<CommentSectionProps> = ({ comments, postId }) => 
       {commentsList.length > 0 && (
         <div className="px-6 py-4 space-y-4">
           {commentsList.map((comment) => (
-            <CommentCard key={comment.id} comment={comment} />
+            <CommentCard 
+              key={comment.id} 
+              comment={comment}
+              onReaction={onCommentReaction} // ✅ NUEVO: Pasar la función de reacción
+            />
           ))}
         </div>
       )}

@@ -17,7 +17,8 @@ interface UseReactionsOptions {
 }
 
 export const useReactions = ({ currentUserId }: UseReactionsOptions) => {
-  const handleReaction = useCallback(async (postId: string, reactionType: string) => {
+  // Reacción a posts
+  const handlePostReaction = useCallback(async (postId: string, reactionType: string) => {
     const reactionTypeId = REACTION_TYPE_MAP[reactionType];
 
     if (!currentUserId) {
@@ -31,15 +32,41 @@ export const useReactions = ({ currentUserId }: UseReactionsOptions) => {
       return;
     }
 
-    console.log(`Enviando reacción: ${reactionType} (ID: ${reactionTypeId}) para post ${postId} con usuario ${currentUserId}`);
-
     try {
-      await sendReaction(currentUserId, postId, reactionType, reactionTypeId);
-      console.log("Reacción enviada exitosamente!");
+      await sendReaction(currentUserId, postId, 'POST', reactionType, reactionTypeId);
     } catch (error) {
-      console.error("Error al enviar la reacción:", error);
+      console.error("Error al enviar la reacción al post:", error);
     }
   }, [currentUserId]);
 
-  return { handleReaction };
+  // ✅ NUEVA: Reacción a comentarios
+  const handleCommentReaction = useCallback(async (commentId: string, reactionType: string) => {
+    const reactionTypeId = REACTION_TYPE_MAP[reactionType];
+
+    if (!currentUserId) {
+      console.warn("No currentUserId disponible. Por favor, inicia sesión para reaccionar.");
+      return;
+    }
+    
+    if (!reactionTypeId) {
+      console.error(`Tipo de reacción inválido: ${reactionType}. No se encontró ID correspondiente.`);
+      console.error('Tipos válidos:', Object.keys(REACTION_TYPE_MAP));
+      return;
+    }
+
+    try {
+      await sendReaction(currentUserId, commentId, 'COMMENT', reactionType, reactionTypeId);
+    } catch (error) {
+      console.error("Error al enviar la reacción al comentario:", error);
+    }
+  }, [currentUserId]);
+
+  // Mantener compatibilidad con el nombre anterior
+  const handleReaction = handlePostReaction;
+
+  return { 
+    handleReaction, // Para posts (compatibilidad)
+    handlePostReaction, 
+    handleCommentReaction 
+  };
 };

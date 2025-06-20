@@ -9,7 +9,15 @@ interface PostsContainerProps {
 }
 
 const PostsContainer: React.FC<PostsContainerProps> = ({ selectedTag, currentUserId }) => {
-  const { posts, loading, error, fetchPosts, handleReaction } = usePosts({ currentUserId });
+  const { 
+    posts, 
+    loading, 
+    error, 
+    fetchPosts, 
+    handleReaction, 
+    handleCommentReaction // ✅ NUEVO: Obtener la función del hook
+  } = usePosts({ currentUserId });
+  
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
 
   useEffect(() => {
@@ -58,6 +66,7 @@ const PostsContainer: React.FC<PostsContainerProps> = ({ selectedTag, currentUse
             key={post.id}
             post={post}
             onReaction={handleReaction}
+            onCommentReaction={handleCommentReaction} // ✅ NUEVO: Pasar la función
           />
         ))
       )}
