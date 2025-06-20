@@ -1,5 +1,5 @@
 // src/constants/tagColors.ts
-export const tagColors: Record<string, string> = {
+export const   : Record<string, string> = {
   // 🔵 Tecnología - Azul (innovación, digital)
   'Tecnología': 'bg-blue-100 text-blue-800 border-blue-200',
   
