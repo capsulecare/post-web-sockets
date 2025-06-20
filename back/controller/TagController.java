@@ -97,14 +97,14 @@ public class TagController {
 
     /**
      * POST /api/posts/{postId}/tags - Agrega etiquetas a un post
-     * Header: X-User-ID: 1 (opcional)
+     * Header: userId: 1 (opcional)
      * Body: { "tagNames": ["etiqueta1", "etiqueta2"] }
      */
     @PostMapping("/posts/{postId}/tags")
     public ResponseEntity<PostDTO> addTagsToPost(
             @PathVariable Long postId,
             @RequestBody TagsRequest request,
-            @RequestHeader(value = "X-User-ID", required = false) Long currentUserId) {
+            @RequestHeader(value = "userId", required = false) Long currentUserId) {
         
         // Validación manual
         if (request.getTagNames() == null || request.getTagNames().isEmpty()) {
@@ -132,7 +132,7 @@ public class TagController {
     public ResponseEntity<PostDTO> replacePostTags(
             @PathVariable Long postId,
             @RequestBody TagsRequest request,
-            @RequestHeader(value = "X-User-ID", required = false) Long currentUserId) {
+            @RequestHeader(value = "userId", required = false) Long currentUserId) {
         
         // Validación manual
         if (request.getTagNames() == null) {
@@ -160,7 +160,7 @@ public class TagController {
     public ResponseEntity<PostDTO> removeTagsFromPost(
             @PathVariable Long postId,
             @RequestBody TagsRequest request,
-            @RequestHeader(value = "X-User-ID", required = false) Long currentUserId) {
+            @RequestHeader(value = "userId", required = false) Long currentUserId) {
         
         // Validación manual
         if (request.getTagNames() == null || request.getTagNames().isEmpty()) {
@@ -187,7 +187,7 @@ public class TagController {
     @GetMapping("/{tagName}/posts")
     public ResponseEntity<List<PostDTO>> getPostsByTag(
             @PathVariable String tagName,
-            @RequestParam(value = "userId", required = false) Long currentUserId,
+            @RequestParam(value = "currentUserId", required = false) Long currentUserId,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
         
