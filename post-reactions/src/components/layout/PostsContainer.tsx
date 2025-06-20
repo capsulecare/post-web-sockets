@@ -1,29 +1,25 @@
-// src/components/PostsContainer.tsx
 import React, { useState, useEffect } from 'react';
-import PostCard from './PostCard'; // PostCard está en la misma carpeta 'components'
-import { usePosts } from '../hooks/usePosts'; // El hook está en 'src/hooks'
-import type { Post } from '../types/post'; // Los tipos están en 'src/types'
+import PostCard from '../post/PostCard';
+import { usePosts } from '../../hooks/usePosts';
+import type { Post } from '../../types/post';
 
 interface PostsContainerProps {
   selectedTag: string;
-  currentUserId: string | null; // Pasa currentUserId desde el componente padre
+  currentUserId: string | null;
 }
 
 const PostsContainer: React.FC<PostsContainerProps> = ({ selectedTag, currentUserId }) => {
   const { posts, loading, error, fetchPosts, handleReaction } = usePosts({ currentUserId });
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
 
-  // useEffect para filtrar posts basado en el tag seleccionado
   useEffect(() => {
     if (selectedTag === 'all') {  
       setFilteredPosts(posts);
     } else {
       setFilteredPosts(posts.filter(post => post.tags.includes(selectedTag)));
     }
-  }, [selectedTag, posts]); // Depende de selectedTag y del estado 'posts' (desde el hook)
+  }, [selectedTag, posts]);
 
-
-  // Mostrar estado de carga
   if (loading) {
     return (
       <div className="text-center py-12">
@@ -35,12 +31,11 @@ const PostsContainer: React.FC<PostsContainerProps> = ({ selectedTag, currentUse
     );
   }
 
-  // Mostrar estado de error
   if (error) {
     return (
       <div className="text-center py-12 text-red-600">
         <p>{error}</p>
-        <button onClick={fetchPosts} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+        <button onClick={fetchPosts} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 cursor-pointer">
           Reintentar
         </button>
       </div>
@@ -62,9 +57,7 @@ const PostsContainer: React.FC<PostsContainerProps> = ({ selectedTag, currentUse
           <PostCard
             key={post.id}
             post={post}
-            onReaction={handleReaction} // Ahora `handleReaction` viene del hook
-            // Podrías necesitar pasar currentUserId y una función para manejar comentarios a PostCard también
-            // si PostCard es responsable de crear comentarios.
+            onReaction={handleReaction}
           />
         ))
       )}

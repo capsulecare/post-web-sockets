@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import type { Comment } from '../types/post';
-import ReactionButton from './ReactionButton';
+import type { Comment } from '../../types/post';
+import Avatar from '../ui/Avatar';
+import ReactionButton from '../reaction/ReactionButton';
+import Button from '../ui/Button';
 import { Reply, MoreHorizontal } from 'lucide-react';
 
 interface CommentCardProps {
@@ -25,7 +27,6 @@ const CommentCard: React.FC<CommentCardProps> = ({ comment, isReply = false }) =
   };
 
   const handleReaction = (reactionType: string) => {
-    // Implementar lógica de reacción a comentario
     console.log('Reacción a comentario:', comment.id, reactionType);
   };
 
@@ -59,20 +60,23 @@ const CommentCard: React.FC<CommentCardProps> = ({ comment, isReply = false }) =
 
   return (
     <div className={`${isReply ? 'ml-8' : ''}`}>
-      <div className="flex items-start space-x-3">
-        <img
+      <div className="flex items-start space-x-3 group">
+        <Avatar
           src={comment.author.avatar}
           alt={comment.author.name}
-          className="w-8 h-8 rounded-full object-cover ring-1 ring-slate-200 flex-shrink-0"
+          size="sm"
         />
         
         <div className="flex-1 min-w-0">
           <div className="bg-slate-100 rounded-2xl px-4 py-3">
             <div className="flex items-center justify-between mb-1">
               <h4 className="font-semibold text-sm text-slate-900">{comment.author.name}</h4>
-              <button className="text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                <MoreHorizontal className="w-4 h-4" />
-              </button>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={MoreHorizontal}
+                className="text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+              />
             </div>
             
             <p className="text-sm text-slate-600 mb-1">{comment.author.title}</p>
@@ -88,19 +92,21 @@ const CommentCard: React.FC<CommentCardProps> = ({ comment, isReply = false }) =
 
             <div className="flex items-center space-x-2">
               <ReactionButton
-                currentReaction={null}
+                currentReaction={comment.userReaction || null}
                 reactions={comment.reactions}
                 onReaction={handleReaction}
               />
               
               {!isReply && (
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setShowReplyForm(!showReplyForm)}
-                  className="flex items-center space-x-1 text-slate-500 hover:text-blue-600 transition-colors font-medium"
+                  icon={Reply}
+                  className="text-slate-500 hover:text-blue-600 transition-colors font-medium"
                 >
-                  <Reply className="w-4 h-4" />
-                  <span>Responder</span>
-                </button>
+                  Responder
+                </Button>
               )}
             </div>
           </div>
@@ -108,10 +114,10 @@ const CommentCard: React.FC<CommentCardProps> = ({ comment, isReply = false }) =
           {/* Reply Form */}
           {showReplyForm && (
             <form onSubmit={handleSubmitReply} className="mt-3 flex items-center space-x-3">
-              <img
+              <Avatar
                 src="https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?w=150"
                 alt="Tu avatar"
-                className="w-8 h-8 rounded-full object-cover ring-1 ring-slate-200"
+                size="sm"
               />
               <div className="flex-1">
                 <input
@@ -123,17 +129,14 @@ const CommentCard: React.FC<CommentCardProps> = ({ comment, isReply = false }) =
                   autoFocus
                 />
               </div>
-              <button
+              <Button
                 type="submit"
                 disabled={!newReply.trim()}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  newReply.trim()
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                    : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                }`}
+                size="sm"
+                variant={newReply.trim() ? 'primary' : 'secondary'}
               >
                 Responder
-              </button>
+              </Button>
             </form>
           )}
 
@@ -141,20 +144,24 @@ const CommentCard: React.FC<CommentCardProps> = ({ comment, isReply = false }) =
           {replies.length > 0 && (
             <div className="mt-3">
               {!showReplies ? (
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setShowReplies(true)}
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                 >
                   Ver {replies.length} respuesta{replies.length > 1 ? 's' : ''}
-                </button>
+                </Button>
               ) : (
                 <div className="space-y-3">
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setShowReplies(false)}
-                    className="text-slate-500 hover:text-slate-700 text-sm font-medium transition-colors"
+                    className="text-slate-500 hover:text-slate-700 text-sm font-medium"
                   >
                     Ocultar respuestas
-                  </button>
+                  </Button>
                   {replies.map((reply) => (
                     <CommentCard key={reply.id} comment={reply} isReply={true} />
                   ))}

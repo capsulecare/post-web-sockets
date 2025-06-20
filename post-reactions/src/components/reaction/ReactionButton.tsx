@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { ThumbsUp } from 'lucide-react';
+import { reactionConfig } from '../../constants/reactions';
+import Tooltip from '../ui/Tooltip';
 
 interface ReactionButtonProps {
   currentReaction: string | null;
@@ -7,16 +9,11 @@ interface ReactionButtonProps {
   onReaction: (reaction: string) => void;
 }
 
-const reactionConfig = {
-  'Me gusta': { emoji: '👍', label: 'Me gusta', color: 'text-blue-600' },
-  'Me encanta': { emoji: '❤️', label: 'Me encanta', color: 'text-pink-600' }, // Cambiado de 😍 a ❤️
-  'Celebrar': { emoji: '🎉', label: 'Celebrar', color: 'text-yellow-600' },
-  'Interesante': { emoji: '💡', label: 'Interesante', color: 'text-orange-600' },
-  'De acuerdo': { emoji: '🤝', label: 'De acuerdo', color: 'text-green-600' },
-  'Hacer gracias': { emoji: '😄', label: 'Hacer gracias', color: 'text-purple-600' }
-};
-
-const ReactionButton: React.FC<ReactionButtonProps> = ({ currentReaction, reactions, onReaction }) => {
+const ReactionButton: React.FC<ReactionButtonProps> = ({ 
+  currentReaction, 
+  reactions, 
+  onReaction 
+}) => {
   const [isHovering, setIsHovering] = useState(false);
   const [hoveredReaction, setHoveredReaction] = useState<string | null>(null);
   const timeoutRef = useRef<number | undefined>(undefined);
@@ -53,7 +50,7 @@ const ReactionButton: React.FC<ReactionButtonProps> = ({ currentReaction, reacti
           onMouseLeave={handleMouseLeave}
         >
           {Object.entries(reactionConfig).map(([key, config]) => (
-            <div key={key} className="relative group">
+            <Tooltip key={key} content={config.label} position="top">
               <button
                 onClick={() => onReaction(key)}
                 onMouseEnter={() => setHoveredReaction(key)}
@@ -61,19 +58,10 @@ const ReactionButton: React.FC<ReactionButtonProps> = ({ currentReaction, reacti
                 className={`p-3 rounded-xl hover:bg-slate-50 transition-all duration-200 flex items-center justify-center min-w-[50px] min-h-[50px] cursor-pointer ${
                   hoveredReaction === key ? 'transform scale-125 bg-slate-50' : ''
                 }`}
-                title={config.label} // Tooltip nativo como respaldo
               >
                 <span className="text-2xl select-none">{config.emoji}</span>
               </button>
-              
-              {/* Tooltip personalizado */}
-              {hoveredReaction === key && (
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap z-50 pointer-events-none">
-                  {config.label}
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                </div>
-              )}
-            </div>
+            </Tooltip>
           ))}
         </div>
       )}

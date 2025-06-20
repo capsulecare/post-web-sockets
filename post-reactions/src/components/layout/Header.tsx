@@ -1,5 +1,7 @@
 import React from 'react';
 import { Plus, Filter, Sparkles } from 'lucide-react';
+import Button from '../ui/Button';
+import Badge from '../ui/Badge';
 
 interface HeaderProps {
   onCreatePost: () => void;
@@ -32,13 +34,13 @@ const Header: React.FC<HeaderProps> = ({ onCreatePost, selectedTag, onTagChange 
             </div>
           </div>
           
-          <button
+          <Button
             onClick={onCreatePost}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            icon={Plus}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
           >
-            <Plus className="w-5 h-5" />
-            <span>Crear Post</span>
-          </button>
+            Crear Post
+          </Button>
         </div>
 
         <div className="flex items-center space-x-3">
@@ -48,7 +50,7 @@ const Header: React.FC<HeaderProps> = ({ onCreatePost, selectedTag, onTagChange 
               <button
                 key={tag.id}
                 onClick={() => onTagChange(tag.id)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 transform hover:scale-105 ${
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 transform hover:scale-105 cursor-pointer ${
                   selectedTag === tag.id
                     ? `${tag.color} text-white shadow-lg`
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
