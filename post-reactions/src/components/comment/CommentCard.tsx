@@ -8,13 +8,16 @@ import { Reply, MoreHorizontal } from 'lucide-react';
 interface CommentCardProps {
   comment: Comment;
   isReply?: boolean;
-  onReaction?: (commentId: string, reactionType: string) => void; // ✅ NUEVO: Prop para manejar reacciones
+  onReaction?: (commentId: string, reactionType: string) => void;
+  // ✅ NUEVO: Key única para forzar re-render
+  forceRenderKey?: number;
 }
 
 const CommentCard: React.FC<CommentCardProps> = ({ 
   comment, 
   isReply = false, 
-  onReaction // ✅ NUEVO
+  onReaction,
+  forceRenderKey // ✅ NUEVO
 }) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [showReplies, setShowReplies] = useState(false);
@@ -31,9 +34,8 @@ const CommentCard: React.FC<CommentCardProps> = ({
     return `${Math.floor(diffInMinutes / 1440)}d`;
   };
 
-  // ✅ ARREGLADO: Ahora llama a la función real de reacción
   const handleReaction = (reactionType: string) => {
-    console.log('🎯 Reacción a comentario:', comment.id, reactionType);
+    console.log('🎯 Reacción a comentario:', comment.id, reactionType, 'forceRenderKey:', forceRenderKey);
     if (onReaction) {
       onReaction(comment.id, reactionType);
     } else {
@@ -69,6 +71,13 @@ const CommentCard: React.FC<CommentCardProps> = ({
     return Object.values(comment.reactions).reduce((sum, count) => sum + count, 0);
   };
 
+  // ✅ NUEVO: Log para debug
+  console.log(`🔄 Renderizando CommentCard ${comment.id}:`, {
+    userReaction: comment.userReaction,
+    reactions: comment.reactions,
+    forceRenderKey
+  });
+
   return (
     <div className={`${isReply ? 'ml-8' : ''}`}>
       <div className="flex items-start space-x-3 group">
@@ -102,10 +111,12 @@ const CommentCard: React.FC<CommentCardProps> = ({
             )}
 
             <div className="flex items-center space-x-2">
+              {/* ✅ NUEVO: Key única para forzar re-render del ReactionButton */}
               <ReactionButton
+                key={`reaction-${comment.id}-${forceRenderKey || 0}`} // ✅ KEY ÚNICA
                 currentReaction={comment.userReaction || null}
                 reactions={comment.reactions}
-                onReaction={handleReaction} // ✅ ARREGLADO: Ahora pasa la función real
+                onReaction={handleReaction}
               />
               
               {!isReply && (
@@ -175,10 +186,11 @@ const CommentCard: React.FC<CommentCardProps> = ({
                   </Button>
                   {replies.map((reply) => (
                     <CommentCard 
-                      key={reply.id} 
+                      key={`${reply.id}-${forceRenderKey || 0}`} // ✅ KEY ÚNICA PARA RESPUESTAS
                       comment={reply} 
                       isReply={true}
-                      onReaction={onReaction} // ✅ NUEVO: Pasar la función a las respuestas también
+                      onReaction={onReaction}
+                      forceRenderKey={forceRenderKey} // ✅ PASAR LA KEY
                     />
                   ))}
                 </div>

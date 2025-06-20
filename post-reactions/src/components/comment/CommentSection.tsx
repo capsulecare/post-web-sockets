@@ -6,13 +6,16 @@ import CommentForm from './CommentForm';
 interface CommentSectionProps {
   comments: Comment[];
   postId: string;
-  onCommentReaction?: (commentId: string, reactionType: string) => void; // ✅ NUEVO
+  onCommentReaction?: (commentId: string, reactionType: string) => void;
+  // ✅ NUEVO: Key para forzar re-render
+  forceRenderKey?: number;
 }
 
 const CommentSection: React.FC<CommentSectionProps> = ({ 
   comments, 
   postId, 
-  onCommentReaction // ✅ NUEVO
+  onCommentReaction,
+  forceRenderKey // ✅ NUEVO
 }) => {
   const [commentsList, setCommentsList] = useState(comments);
 
@@ -34,16 +37,23 @@ const CommentSection: React.FC<CommentSectionProps> = ({
     setCommentsList([...commentsList, comment]);
   };
 
+  // ✅ NUEVO: Log para debug
+  console.log(`🔄 Renderizando CommentSection para post ${postId}:`, {
+    commentsCount: comments.length,
+    forceRenderKey
+  });
+
   return (
     <div className="border-t border-slate-100 bg-slate-50/30">
       {/* Comments List */}
-      {commentsList.length > 0 && (
+      {comments.length > 0 && (
         <div className="px-6 py-4 space-y-4">
-          {commentsList.map((comment) => (
+          {comments.map((comment) => (
             <CommentCard 
-              key={comment.id} 
+              key={`${comment.id}-${forceRenderKey || 0}`} // ✅ KEY ÚNICA
               comment={comment}
-              onReaction={onCommentReaction} // ✅ NUEVO: Pasar la función de reacción
+              onReaction={onCommentReaction}
+              forceRenderKey={forceRenderKey} // ✅ PASAR LA KEY
             />
           ))}
         </div>

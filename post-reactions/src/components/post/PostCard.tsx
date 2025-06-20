@@ -9,19 +9,26 @@ import CommentSection from '../comment/CommentSection';
 interface PostCardProps {
   post: Post;
   onReaction: (postId: string, reactionType: string) => void;
-  onCommentReaction?: (commentId: string, reactionType: string) => void; // ✅ NUEVO
+  onCommentReaction?: (commentId: string, reactionType: string) => void;
 }
 
 const PostCard: React.FC<PostCardProps> = ({ 
   post, 
   onReaction, 
-  onCommentReaction // ✅ NUEVO
+  onCommentReaction
 }) => {
   const [showComments, setShowComments] = useState(false);
 
   const handleReaction = (reactionType: string) => {
     onReaction(post.id, reactionType);
   };
+
+  // ✅ NUEVO: Log para debug
+  console.log(`🔄 Renderizando PostCard ${post.id}:`, {
+    userReaction: post.userReaction,
+    reactions: post.reactions,
+    _lastUpdate: post._lastUpdate
+  });
 
   return (
     <article className="bg-white rounded-2xl shadow-sm border border-slate-200/50 hover:shadow-lg transition-all duration-300 overflow-hidden">
@@ -50,7 +57,8 @@ const PostCard: React.FC<PostCardProps> = ({
         <CommentSection 
           comments={post.comments} 
           postId={post.id}
-          onCommentReaction={onCommentReaction} // ✅ NUEVO: Pasar la función
+          onCommentReaction={onCommentReaction}
+          forceRenderKey={post._lastUpdate} // ✅ NUEVO: Usar _lastUpdate como key
         />
       )}
     </article>
