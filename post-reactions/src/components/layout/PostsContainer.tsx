@@ -15,7 +15,8 @@ const PostsContainer: React.FC<PostsContainerProps> = ({ selectedTag, currentUse
     error, 
     fetchPosts, 
     handleReaction, 
-    handleCommentReaction // ✅ NUEVO: Obtener la función del hook
+    handleCommentReaction,
+    handleNewComment // ✅ NUEVO: Obtener la función del hook
   } = usePosts({ currentUserId });
   
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
@@ -66,7 +67,8 @@ const PostsContainer: React.FC<PostsContainerProps> = ({ selectedTag, currentUse
             key={post.id}
             post={post}
             onReaction={handleReaction}
-            onCommentReaction={handleCommentReaction} // ✅ NUEVO: Pasar la función
+            onCommentReaction={handleCommentReaction}
+            onNewComment={handleNewComment} // ✅ NUEVO: Pasar la función
           />
         ))
       )}

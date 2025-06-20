@@ -14,6 +14,8 @@ export interface Comment {
   reactions: Record<string, number>;
   userReaction?: string | null;
   replies?: Comment[];
+  postId?: string; // ✅ NUEVO: Para identificar a qué post pertenece
+  parentCommentId?: string; // ✅ NUEVO: Para respuestas
 }
 
 export interface Post {
@@ -25,7 +27,7 @@ export interface Post {
   reactions: Record<string, number>;
   userReaction: string | null;
   comments: Comment[];
-  _lastUpdate?: number; // ✅ NUEVO: Campo para forzar re-renders
+  _lastUpdate?: number;
 }
 
 // Tipo para notificaciones de WebSocket

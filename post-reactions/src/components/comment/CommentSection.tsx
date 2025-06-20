@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import type { Comment } from '../../types/post';
 import CommentCard from './CommentCard';
 import CommentForm from './CommentForm';
@@ -7,7 +7,7 @@ interface CommentSectionProps {
   comments: Comment[];
   postId: string;
   onCommentReaction?: (commentId: string, reactionType: string) => void;
-  // ✅ NUEVO: Key para forzar re-render
+  onNewComment?: (postId: string, content: string, parentCommentId?: string) => Promise<void>; // ✅ NUEVO
   forceRenderKey?: number;
 }
 
@@ -15,32 +15,27 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   comments, 
   postId, 
   onCommentReaction,
-  forceRenderKey // ✅ NUEVO
+  onNewComment, // ✅ NUEVO
+  forceRenderKey
 }) => {
-  const [commentsList, setCommentsList] = useState(comments);
 
-  const handleNewComment = (content: string) => {
-    const comment: Comment = {
-      id: `c${Date.now()}`,
-      author: {
-        id: 'current-user',
-        name: 'Usuario Actual',
-        avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?w=150',
-        title: 'Emprendedor'
-      },
-      content,
-      createdAt: new Date(),
-      reactions: {},
-      replies: []
-    };
-    
-    setCommentsList([...commentsList, comment]);
+  const handleNewComment = async (content: string) => {
+    if (onNewComment) {
+      try {
+        await onNewComment(postId, content);
+        console.log('✅ Comentario enviado exitosamente');
+      } catch (error) {
+        console.error('❌ Error al enviar comentario:', error);
+      }
+    } else {
+      console.warn('⚠️ No se proporcionó función onNewComment');
+    }
   };
 
-  // ✅ NUEVO: Log para debug
   console.log(`🔄 Renderizando CommentSection para post ${postId}:`, {
     commentsCount: comments.length,
-    forceRenderKey
+    forceRenderKey,
+    hasOnNewComment: !!onNewComment
   });
 
   return (
@@ -50,17 +45,22 @@ const CommentSection: React.FC<CommentSectionProps> = ({
         <div className="px-6 py-4 space-y-4">
           {comments.map((comment) => (
             <CommentCard 
-              key={`${comment.id}-${forceRenderKey || 0}`} // ✅ KEY ÚNICA
+              key={`${comment.id}-${forceRenderKey || 0}`}
               comment={comment}
               onReaction={onCommentReaction}
-              forceRenderKey={forceRenderKey} // ✅ PASAR LA KEY
+              onNewComment={onNewComment} // ✅ PASAR FUNCIÓN PARA RESPUESTAS
+              forceRenderKey={forceRenderKey}
             />
           ))}
         </div>
       )}
 
       {/* Comment Input */}
-      <CommentForm onSubmit={handleNewComment} />
+      <CommentForm 
+        onSubmit={handleNewComment} 
+        postId={postId}
+        placeholder="Escribe un comentario..."
+      />
     </div>
   );
 };

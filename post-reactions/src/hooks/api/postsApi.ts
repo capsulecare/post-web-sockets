@@ -76,3 +76,48 @@ export const fetchUserReaction = async (
     return null;
   }
 };
+
+/**
+ * ✅ NUEVO: Crear un comentario
+ */
+export const createComment = async (
+  content: string,
+  postId: string,
+  userId: string,
+  parentCommentId?: string
+): Promise<any> => {
+  console.log(`🚀 Creando comentario:`, {
+    content,
+    postId,
+    userId,
+    parentCommentId
+  });
+
+  const url = new URL(`${API_BASE_URL}/comments`);
+  url.searchParams.append('postId', postId);
+  url.searchParams.append('userId', userId);
+  if (parentCommentId) {
+    url.searchParams.append('parentCommentId', parentCommentId);
+  }
+
+  const response = await fetch(url.toString(), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      contenido: content // ✅ IMPORTANTE: El backend espera 'contenido'
+    })
+  });
+
+  console.log(`📡 Respuesta del servidor: ${response.status} ${response.statusText}`);
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Error al crear comentario: ${response.status} ${response.statusText} - ${errorText}`);
+  }
+
+  const result = await response.json();
+  console.log(`✅ Comentario creado exitosamente:`, result);
+  return result;
+};

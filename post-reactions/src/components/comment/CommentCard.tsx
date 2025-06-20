@@ -3,12 +3,14 @@ import type { Comment } from '../../types/post';
 import Avatar from '../ui/Avatar';
 import ReactionButton from '../reaction/ReactionButton';
 import Button from '../ui/Button';
+import CommentForm from './CommentForm';
 import { Reply, MoreHorizontal } from 'lucide-react';
 
 interface CommentCardProps {
   comment: Comment;
   isReply?: boolean;
   onReaction?: (commentId: string, reactionType: string) => void;
+  onNewComment?: (postId: string, content: string, parentCommentId?: string) => Promise<void>; // ✅ NUEVO
   forceRenderKey?: number;
 }
 
@@ -16,12 +18,11 @@ const CommentCard: React.FC<CommentCardProps> = ({
   comment, 
   isReply = false, 
   onReaction,
+  onNewComment, // ✅ NUEVO
   forceRenderKey
 }) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [showReplies, setShowReplies] = useState(false);
-  const [newReply, setNewReply] = useState('');
-  const [replies, setReplies] = useState(comment.replies || []);
 
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
@@ -42,40 +43,32 @@ const CommentCard: React.FC<CommentCardProps> = ({
     }
   };
 
-  const handleSubmitReply = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newReply.trim()) {
-      const reply: Comment = {
-        id: `r${Date.now()}`,
-        author: {
-          id: 'current-user',
-          name: 'Usuario Actual',
-          avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?w=150',
-          title: 'Emprendedor'
-        },
-        content: newReply,
-        createdAt: new Date(),
-        reactions: {},
-        replies: []
-      };
-      
-      setReplies([...replies, reply]);
-      setNewReply('');
-      setShowReplyForm(false);
-      setShowReplies(true);
+  // ✅ NUEVO: Manejar respuesta a comentario
+  const handleReplySubmit = async (content: string) => {
+    if (onNewComment) {
+      try {
+        // Necesitamos el postId - lo podemos obtener del contexto o pasarlo como prop
+        // Por ahora, vamos a asumir que está disponible en el comment o lo pasamos desde arriba
+        await onNewComment('1', content, comment.id); // TODO: Obtener postId real
+        setShowReplyForm(false);
+        setShowReplies(true);
+        console.log('✅ Respuesta enviada exitosamente');
+      } catch (error) {
+        console.error('❌ Error al enviar respuesta:', error);
+      }
     }
   };
 
   console.log(`🔄 Renderizando CommentCard ${comment.id}:`, {
     userReaction: comment.userReaction,
     reactions: comment.reactions,
-    forceRenderKey
+    forceRenderKey,
+    hasOnNewComment: !!onNewComment
   });
 
   return (
     <div className={`${isReply ? 'ml-8' : ''}`}>
       <div className="flex items-start space-x-3 group">
-        {/* ✅ CAMBIO: Avatar sin verificación */}
         <Avatar
           src={comment.author.avatar}
           alt={comment.author.name}
@@ -127,35 +120,17 @@ const CommentCard: React.FC<CommentCardProps> = ({
 
           {/* Reply Form */}
           {showReplyForm && (
-            <form onSubmit={handleSubmitReply} className="mt-3 flex items-center space-x-3">
-              <Avatar
-                src="https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?w=150"
-                alt="Tu avatar"
-                size="sm"
+            <div className="mt-3">
+              <CommentForm
+                onSubmit={handleReplySubmit}
+                placeholder={`Responder a ${comment.author.name}...`}
+                parentCommentId={comment.id}
               />
-              <div className="flex-1">
-                <input
-                  type="text"
-                  value={newReply}
-                  onChange={(e) => setNewReply(e.target.value)}
-                  placeholder={`Responder a ${comment.author.name}...`}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  autoFocus
-                />
-              </div>
-              <Button
-                type="submit"
-                disabled={!newReply.trim()}
-                size="sm"
-                variant={newReply.trim() ? 'primary' : 'secondary'}
-              >
-                Responder
-              </Button>
-            </form>
+            </div>
           )}
 
           {/* Replies */}
-          {replies.length > 0 && (
+          {comment.replies && comment.replies.length > 0 && (
             <div className="mt-3">
               {!showReplies ? (
                 <Button
@@ -164,7 +139,7 @@ const CommentCard: React.FC<CommentCardProps> = ({
                   onClick={() => setShowReplies(true)}
                   className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                 >
-                  Ver {replies.length} respuesta{replies.length > 1 ? 's' : ''}
+                  Ver {comment.replies.length} respuesta{comment.replies.length > 1 ? 's' : ''}
                 </Button>
               ) : (
                 <div className="space-y-3">
@@ -176,12 +151,13 @@ const CommentCard: React.FC<CommentCardProps> = ({
                   >
                     Ocultar respuestas
                   </Button>
-                  {replies.map((reply) => (
+                  {comment.replies.map((reply) => (
                     <CommentCard 
                       key={`${reply.id}-${forceRenderKey || 0}`}
                       comment={reply} 
                       isReply={true}
                       onReaction={onReaction}
+                      onNewComment={onNewComment} // ✅ PASAR FUNCIÓN
                       forceRenderKey={forceRenderKey}
                     />
                   ))}

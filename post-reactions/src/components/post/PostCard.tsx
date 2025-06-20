@@ -10,12 +10,14 @@ interface PostCardProps {
   post: Post;
   onReaction: (postId: string, reactionType: string) => void;
   onCommentReaction?: (commentId: string, reactionType: string) => void;
+  onNewComment?: (postId: string, content: string, parentCommentId?: string) => Promise<void>; // ✅ NUEVO
 }
 
 const PostCard: React.FC<PostCardProps> = ({ 
   post, 
   onReaction, 
-  onCommentReaction
+  onCommentReaction,
+  onNewComment // ✅ NUEVO
 }) => {
   const [showComments, setShowComments] = useState(false);
 
@@ -23,11 +25,11 @@ const PostCard: React.FC<PostCardProps> = ({
     onReaction(post.id, reactionType);
   };
 
-  // ✅ NUEVO: Log para debug
   console.log(`🔄 Renderizando PostCard ${post.id}:`, {
     userReaction: post.userReaction,
     reactions: post.reactions,
-    _lastUpdate: post._lastUpdate
+    _lastUpdate: post._lastUpdate,
+    hasOnNewComment: !!onNewComment
   });
 
   return (
@@ -58,7 +60,8 @@ const PostCard: React.FC<PostCardProps> = ({
           comments={post.comments} 
           postId={post.id}
           onCommentReaction={onCommentReaction}
-          forceRenderKey={post._lastUpdate} // ✅ NUEVO: Usar _lastUpdate como key
+          onNewComment={onNewComment} // ✅ PASAR FUNCIÓN
+          forceRenderKey={post._lastUpdate}
         />
       )}
     </article>
