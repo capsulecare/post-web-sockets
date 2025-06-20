@@ -29,6 +29,7 @@ export const parseCommentDates = (comment: any): Comment => {
 
 /**
  * Actualiza reacciones en comentarios recursivamente
+ * ✅ ARREGLADO: Ahora mantiene la userReaction existente
  */
 export const updateCommentReactionsRecursive = (
   comments: Comment[], 
@@ -36,10 +37,17 @@ export const updateCommentReactionsRecursive = (
 ): Comment[] => {
   return comments.map(comment => {
     if (comment.id === reactionNotification.targetId && reactionNotification.targetType === 'COMMENT') {
+      console.log(`🔄 Actualizando conteos del comentario ${comment.id}:`, {
+        antes: comment.reactions,
+        despues: reactionNotification.reactionCounts,
+        userReactionAntes: comment.userReaction
+      });
+      
       return {
         ...comment,
         reactions: reactionNotification.reactionCounts,
-        // Mantenemos la userReaction actual
+        // ✅ MANTENER la userReaction existente (se actualizará por separado)
+        userReaction: comment.userReaction
       };
     }
     
@@ -55,7 +63,7 @@ export const updateCommentReactionsRecursive = (
 };
 
 /**
- * Actualiza la userReaction de un comentario específico recursivamente
+ * ✅ NUEVA FUNCIÓN: Actualiza la userReaction de un comentario específico recursivamente
  */
 export const updateCommentUserReaction = (
   comments: Comment[],
@@ -64,6 +72,11 @@ export const updateCommentUserReaction = (
 ): Comment[] => {
   return comments.map(comment => {
     if (comment.id === targetId) {
+      console.log(`🎯 Actualizando userReaction del comentario ${targetId}:`, {
+        antes: comment.userReaction,
+        despues: userReaction
+      });
+      
       return {
         ...comment,
         userReaction: userReaction

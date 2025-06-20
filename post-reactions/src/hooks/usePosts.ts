@@ -1,4 +1,4 @@
-// src/hooks/usePosts.ts - Versión modularizada
+// src/hooks/usePosts.ts - Versión corregida
 import { useState, useEffect, useCallback } from 'react';
 import type { Post, Comment, NotificationReaction } from '../types/post';
 
@@ -23,7 +23,7 @@ interface UsePostsReturn {
   error: string | null;
   fetchPosts: () => Promise<void>;
   handleReaction: (postId: string, reactionType: string) => Promise<void>;
-  handleCommentReaction: (commentId: string, reactionType: string) => Promise<void>; // ✅ NUEVO
+  handleCommentReaction: (commentId: string, reactionType: string) => Promise<void>;
 }
 
 export const usePosts = ({ currentUserId }: UsePostsOptions): UsePostsReturn => {
@@ -60,39 +60,39 @@ export const usePosts = ({ currentUserId }: UsePostsOptions): UsePostsReturn => 
     setPosts(prevPosts => addCommentToPosts(prevPosts, newComment));
   }, []);
 
-  // Manejador para cambios de reacciones
+  // ✅ ARREGLADO: Manejador para cambios de reacciones
   const handleReactionChange = useCallback((reactionNotification: NotificationReaction) => {
-    console.log('Procesando notificación de reacción:', reactionNotification);
+    console.log('🔄 Procesando notificación de reacción:', reactionNotification);
 
     // Paso 1: Actualizar conteos de manera síncrona
     setPosts((prevPosts: Post[]) => {
       return prevPosts.map((post: Post) => {
         if (reactionNotification.targetType === 'POST' && post.id === reactionNotification.targetId) {
-          console.log('Actualizando reacciones del post:', post.id);
-          console.log('Reacciones antes:', post.reactions);
-          console.log('Nuevas reacciones del backend:', reactionNotification.reactionCounts);
+          console.log('📝 Actualizando reacciones del post:', post.id);
           
           return {
             ...post,
             reactions: reactionNotification.reactionCounts,
-            userReaction: post.userReaction // Mantenemos la userReaction actual
+            userReaction: post.userReaction // Mantener userReaction actual
           };
-        } else {
+        } else if (reactionNotification.targetType === 'COMMENT') {
+          // ✅ ARREGLADO: Solo actualizar conteos, no userReaction aún
           const updatedComments = updateCommentReactionsRecursive(
             post.comments,
             reactionNotification
           );
           return { ...post, comments: updatedComments };
         }
+        return post;
       });
     });
 
-    // Paso 2: Consultar userReaction del usuario actual de manera asíncrona
+    // Paso 2: Consultar y actualizar userReaction del usuario actual de manera asíncrona
     if (currentUserId) {
       if (reactionNotification.targetType === 'POST') {
         fetchUserReaction(currentUserId, reactionNotification.targetId, 'POST')
           .then(userReaction => {
-            console.log('UserReaction consultada individualmente:', userReaction);
+            console.log('👤 UserReaction de POST consultada:', userReaction);
             
             setPosts((prevPosts: Post[]) => {
               return prevPosts.map((post: Post) => {
@@ -104,12 +104,13 @@ export const usePosts = ({ currentUserId }: UsePostsOptions): UsePostsReturn => 
             });
           })
           .catch(error => {
-            console.error('Error consultando userReaction:', error);
+            console.error('❌ Error consultando userReaction de POST:', error);
           });
       } else if (reactionNotification.targetType === 'COMMENT') {
+        // ✅ ARREGLADO: Consultar userReaction del comentario
         fetchUserReaction(currentUserId, reactionNotification.targetId, 'COMMENT')
           .then(userReaction => {
-            console.log('UserReaction de comentario consultada individualmente:', userReaction);
+            console.log('💬 UserReaction de COMMENT consultada:', userReaction);
             
             setPosts((prevPosts: Post[]) => {
               return prevPosts.map((post: Post) => {
@@ -125,7 +126,7 @@ export const usePosts = ({ currentUserId }: UsePostsOptions): UsePostsReturn => 
             });
           })
           .catch(error => {
-            console.error('Error consultando userReaction del comentario:', error);
+            console.error('❌ Error consultando userReaction del comentario:', error);
           });
       }
     }
@@ -147,7 +148,7 @@ export const usePosts = ({ currentUserId }: UsePostsOptions): UsePostsReturn => 
     loading, 
     error, 
     fetchPosts: loadPosts, 
-    handleReaction: handlePostReaction, // Para posts
-    handleCommentReaction // ✅ NUEVO: Para comentarios
+    handleReaction: handlePostReaction,
+    handleCommentReaction
   };
 };
