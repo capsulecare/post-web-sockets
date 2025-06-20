@@ -159,30 +159,25 @@ export const usePosts = ({ currentUserId }: UsePostsOptions): UsePostsReturn => 
           }
         });
 
-        client.subscribe('/topic/reactions/new', async message => {
+        client.subscribe('/topic/reactions/new', message => {
           console.log('Nueva notificación de reacción RAW:', message.body);
           try {
             const reactionNotification: NotificationReaction = JSON.parse(message.body);
             console.log('Notificación de reacción PARSEADA:', reactionNotification);
 
+            // CAMBIO CLAVE: Primero actualizamos los conteos de manera síncrona
             setPosts((prevPosts: Post[]) => {
-              return prevPosts.map(async (post: Post) => {
+              return prevPosts.map((post: Post) => {
                 if (reactionNotification.targetType === 'POST' && post.id === reactionNotification.targetId) {
                   console.log('Actualizando reacciones del post:', post.id);
                   console.log('Reacciones antes:', post.reactions);
                   console.log('Nuevas reacciones del backend:', reactionNotification.reactionCounts);
                   
-                  // CAMBIO CLAVE: Consultar la reacción del usuario actual individualmente
-                  let userReaction = post.userReaction; // Mantener el valor actual por defecto
-                  if (currentUserId) {
-                    userReaction = await fetchUserReaction(currentUserId, post.id, 'POST');
-                    console.log('UserReaction consultada individualmente:', userReaction);
-                  }
-                  
                   return {
                     ...post,
                     reactions: reactionNotification.reactionCounts,
-                    userReaction: userReaction
+                    // Mantenemos la userReaction actual por ahora
+                    userReaction: post.userReaction
                   };
                 } else {
                   const updatedComments = updateCommentReactionsRecursive(
@@ -194,22 +189,68 @@ export const usePosts = ({ currentUserId }: UsePostsOptions): UsePostsReturn => 
               });
             });
 
-            // NUEVO: Manejar la actualización asíncrona para posts
+            // NUEVO: Luego consultamos la reacción del usuario actual de manera asíncrona
             if (reactionNotification.targetType === 'POST' && currentUserId) {
-              const userReaction = await fetchUserReaction(currentUserId, reactionNotification.targetId, 'POST');
-              
-              setPosts((prevPosts: Post[]) => {
-                return prevPosts.map((post: Post) => {
-                  if (post.id === reactionNotification.targetId) {
-                    return {
-                      ...post,
-                      reactions: reactionNotification.reactionCounts,
-                      userReaction: userReaction
-                    };
-                  }
-                  return post;
+              fetchUserReaction(currentUserId, reactionNotification.targetId, 'POST')
+                .then(userReaction => {
+                  console.log('UserReaction consultada individualmente:', userReaction);
+                  
+                  setPosts((prevPosts: Post[]) => {
+                    return prevPosts.map((post: Post) => {
+                      if (post.id === reactionNotification.targetId) {
+                        return {
+                          ...post,
+                          userReaction: userReaction
+                        };
+                      }
+                      return post;
+                    });
+                  });
+                })
+                .catch(error => {
+                  console.error('Error consultando userReaction:', error);
                 });
-              });
+            }
+
+            // NUEVO: Manejar comentarios de manera similar si es necesario
+            if (reactionNotification.targetType === 'COMMENT' && currentUserId) {
+              fetchUserReaction(currentUserId, reactionNotification.targetId, 'COMMENT')
+                .then(userReaction => {
+                  console.log('UserReaction de comentario consultada individualmente:', userReaction);
+                  
+                  // Función recursiva para actualizar la userReaction del comentario específico
+                  const updateCommentUserReaction = (comments: Comment[]): Comment[] => {
+                    return comments.map(comment => {
+                      if (comment.id === reactionNotification.targetId) {
+                        return {
+                          ...comment,
+                          userReaction: userReaction
+                        };
+                      }
+                      
+                      if (comment.replies && comment.replies.length > 0) {
+                        return {
+                          ...comment,
+                          replies: updateCommentUserReaction(comment.replies)
+                        };
+                      }
+                      
+                      return comment;
+                    });
+                  };
+
+                  setPosts((prevPosts: Post[]) => {
+                    return prevPosts.map((post: Post) => {
+                      return {
+                        ...post,
+                        comments: updateCommentUserReaction(post.comments)
+                      };
+                    });
+                  });
+                })
+                .catch(error => {
+                  console.error('Error consultando userReaction del comentario:', error);
+                });
             }
 
           } catch (e) {
