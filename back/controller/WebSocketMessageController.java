@@ -37,24 +37,25 @@ public class WebSocketMessageController {
 
     /**
      * Notifica a los suscriptores sobre un cambio en las reacciones de un post o comentario.
-     * Este método es llamado desde ReactionService.
+     * CAMBIO IMPORTANTE: Ya no enviamos userReaction específica, solo los conteos generales.
+     * Cada cliente deberá consultar su propia reacción individualmente.
      *
      * @param targetId      El ID del post o comentario afectado (Long).
      * @param targetType    El tipo de objetivo (POST o COMMENT).
      * @param reactionCounts Un mapa con los conteos de cada tipo de reacción.
-     * @param userReaction  El tipo de reacción del usuario actual (nombre del tipo) o null si no reaccionó.
      */
-    public void notifyReactionChange(Long targetId, TargetType targetType, Map<String, Long> reactionCounts, String userReaction) {
+    public void notifyReactionChange(Long targetId, TargetType targetType, Map<String, Long> reactionCounts) {
         // Definimos un tópico general para todas las notificaciones de reacciones.
         // Esto simplifica la suscripción en el frontend, que solo necesita escuchar un canal.
         String destination = "/topic/reactions/new"; // Tópico general
 
         // Creamos una instancia de nuestro DTO para enviar la notificación
+        // CAMBIO: userReaction ahora siempre es null porque cada cliente debe consultar la suya
         ReactionNotificationDTO notification = new ReactionNotificationDTO(
                 String.valueOf(targetId), // Convertimos Long a String, ya que el frontend espera String para IDs
                 targetType,
                 reactionCounts,
-                userReaction
+                null // ¡CAMBIO CLAVE! Ya no enviamos userReaction específica
         );
 
         // Enviamos el DTO al tópico general de reacciones

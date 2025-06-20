@@ -124,12 +124,9 @@ public class ReactionService {
         Map<String, Long> updatedCounts = getReactionsCountForTarget(targetId, targetType);
         System.out.println("Conteos actualizados: " + updatedCounts);
 
-        // Obtener la reacción actual del usuario que realizó la acción sobre este target
-        String userCurrentReaction = getUserReactionForTarget(userId, targetId, targetType);
-        System.out.println("Reacción actual del usuario: " + userCurrentReaction);
-
-        // Enviar la notificación a través del WebSocketMessageController
-        webSocketMessageController.notifyReactionChange(targetId, targetType, updatedCounts, userCurrentReaction);
+        // CAMBIO IMPORTANTE: Ya no enviamos userReaction específica en la notificación WebSocket
+        // Cada cliente consultará su propia reacción cuando reciba la notificación
+        webSocketMessageController.notifyReactionChange(targetId, targetType, updatedCounts);
 
         System.out.println("=== FIN DEBUG REACTION SERVICE ===");
         return savedReaction;
@@ -147,7 +144,8 @@ public class ReactionService {
 
         // Notificar a través de WebSocket sobre la eliminación (recalculando conteos)
         Map<String, Long> updatedCounts = getReactionsCountForTarget(targetId, targetType);
-        webSocketMessageController.notifyReactionChange(targetId, targetType, updatedCounts, null);
+        // CAMBIO: Ya no enviamos userReaction específica
+        webSocketMessageController.notifyReactionChange(targetId, targetType, updatedCounts);
     }
 
     /**

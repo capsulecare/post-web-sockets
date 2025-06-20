@@ -56,7 +56,8 @@ const updateCommentReactionsRecursive = (
       return {
         ...comment,
         reactions: reactionNotification.reactionCounts,
-        userReaction: reactionNotification.userReaction
+        // CAMBIO: Ya no actualizamos userReaction desde WebSocket, se mantiene el valor actual
+        // userReaction: reactionNotification.userReaction // ← REMOVIDO
       };
     }
     
@@ -82,6 +83,26 @@ const addCommentToPosts = (posts: Post[], newComment: Comment): Post[] => {
     }
     return post;
   });
+};
+
+// NUEVA FUNCIÓN: Consultar la reacción del usuario actual para un target específico
+const fetchUserReaction = async (currentUserId: string, targetId: string, targetType: 'POST' | 'COMMENT'): Promise<string | null> => {
+  try {
+    const response = await fetch(`http://localhost:8080/api/reactions/user-reaction?userId=${currentUserId}&targetId=${targetId}&targetType=${targetType}`);
+    
+    if (!response.ok) {
+      if (response.status === 404) {
+        return null; // Usuario no ha reaccionado
+      }
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+    
+    const userReaction = await response.text();
+    return userReaction || null;
+  } catch (error) {
+    console.error('Error fetching user reaction:', error);
+    return null;
+  }
 };
 
 export const usePosts = ({ currentUserId }: UsePostsOptions): UsePostsReturn => {
@@ -138,24 +159,30 @@ export const usePosts = ({ currentUserId }: UsePostsOptions): UsePostsReturn => 
           }
         });
 
-        client.subscribe('/topic/reactions/new', message => {
+        client.subscribe('/topic/reactions/new', async message => {
           console.log('Nueva notificación de reacción RAW:', message.body);
           try {
             const reactionNotification: NotificationReaction = JSON.parse(message.body);
             console.log('Notificación de reacción PARSEADA:', reactionNotification);
 
             setPosts((prevPosts: Post[]) => {
-              return prevPosts.map((post: Post) => {
+              return prevPosts.map(async (post: Post) => {
                 if (reactionNotification.targetType === 'POST' && post.id === reactionNotification.targetId) {
                   console.log('Actualizando reacciones del post:', post.id);
                   console.log('Reacciones antes:', post.reactions);
                   console.log('Nuevas reacciones del backend:', reactionNotification.reactionCounts);
-                  console.log('UserReaction del backend:', reactionNotification.userReaction);
+                  
+                  // CAMBIO CLAVE: Consultar la reacción del usuario actual individualmente
+                  let userReaction = post.userReaction; // Mantener el valor actual por defecto
+                  if (currentUserId) {
+                    userReaction = await fetchUserReaction(currentUserId, post.id, 'POST');
+                    console.log('UserReaction consultada individualmente:', userReaction);
+                  }
                   
                   return {
                     ...post,
                     reactions: reactionNotification.reactionCounts,
-                    userReaction: reactionNotification.userReaction
+                    userReaction: userReaction
                   };
                 } else {
                   const updatedComments = updateCommentReactionsRecursive(
@@ -166,6 +193,25 @@ export const usePosts = ({ currentUserId }: UsePostsOptions): UsePostsReturn => 
                 }
               });
             });
+
+            // NUEVO: Manejar la actualización asíncrona para posts
+            if (reactionNotification.targetType === 'POST' && currentUserId) {
+              const userReaction = await fetchUserReaction(currentUserId, reactionNotification.targetId, 'POST');
+              
+              setPosts((prevPosts: Post[]) => {
+                return prevPosts.map((post: Post) => {
+                  if (post.id === reactionNotification.targetId) {
+                    return {
+                      ...post,
+                      reactions: reactionNotification.reactionCounts,
+                      userReaction: userReaction
+                    };
+                  }
+                  return post;
+                });
+              });
+            }
+
           } catch (e) {
             console.error('ERROR al procesar notificación de reacción del WebSocket:', e, 'Mensaje recibido:', message.body);
           }
