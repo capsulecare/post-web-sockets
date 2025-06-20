@@ -9,7 +9,7 @@ interface ReactionButtonProps {
 
 const reactionConfig = {
   'Me gusta': { emoji: '👍', label: 'Me gusta', color: 'text-blue-600' },
-  'Me encanta': { emoji: '😍', label: 'Me encanta', color: 'text-pink-600' },
+  'Me encanta': { emoji: '❤️', label: 'Me encanta', color: 'text-pink-600' }, // Cambiado de 😍 a ❤️
   'Celebrar': { emoji: '🎉', label: 'Celebrar', color: 'text-yellow-600' },
   'Interesante': { emoji: '💡', label: 'Interesante', color: 'text-orange-600' },
   'De acuerdo': { emoji: '🤝', label: 'De acuerdo', color: 'text-green-600' },
@@ -53,21 +53,27 @@ const ReactionButton: React.FC<ReactionButtonProps> = ({ currentReaction, reacti
           onMouseLeave={handleMouseLeave}
         >
           {Object.entries(reactionConfig).map(([key, config]) => (
-            <button
-              key={key}
-              onClick={() => onReaction(key)}
-              onMouseEnter={() => setHoveredReaction(key)}
-              onMouseLeave={() => setHoveredReaction(null)}
-              className={`p-2 rounded-xl hover:bg-slate-50 transition-all duration-200 flex flex-col items-center min-w-[60px] ${
-                hoveredReaction === key ? 'transform scale-125' : ''
-              }`}
-              title={config.label}
-            >
-              <span className="text-2xl mb-1">{config.emoji}</span>
-              <span className={`text-xs font-medium ${config.color}`}>
-                {config.label}
-              </span>
-            </button>
+            <div key={key} className="relative group">
+              <button
+                onClick={() => onReaction(key)}
+                onMouseEnter={() => setHoveredReaction(key)}
+                onMouseLeave={() => setHoveredReaction(null)}
+                className={`p-3 rounded-xl hover:bg-slate-50 transition-all duration-200 flex items-center justify-center min-w-[50px] min-h-[50px] cursor-pointer ${
+                  hoveredReaction === key ? 'transform scale-125 bg-slate-50' : ''
+                }`}
+                title={config.label} // Tooltip nativo como respaldo
+              >
+                <span className="text-2xl select-none">{config.emoji}</span>
+              </button>
+              
+              {/* Tooltip personalizado */}
+              {hoveredReaction === key && (
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap z-50 pointer-events-none">
+                  {config.label}
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}
@@ -77,7 +83,7 @@ const ReactionButton: React.FC<ReactionButtonProps> = ({ currentReaction, reacti
         onClick={handleQuickReaction}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+        className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 cursor-pointer ${
           currentReaction
             ? `${currentReactionConfig?.color} bg-blue-50 hover:bg-blue-100`
             : 'text-slate-600 hover:text-blue-600 hover:bg-blue-50'
@@ -85,7 +91,7 @@ const ReactionButton: React.FC<ReactionButtonProps> = ({ currentReaction, reacti
       >
         {currentReaction ? (
           <>
-            <span className="text-lg">{currentReactionConfig?.emoji}</span>
+            <span className="text-lg select-none">{currentReactionConfig?.emoji}</span>
             <span>{currentReactionConfig?.label}</span>
           </>
         ) : (

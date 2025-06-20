@@ -33,6 +33,19 @@ const PostCard: React.FC<PostCardProps> = ({ post, onReaction }) => {
     return Object.values(post.reactions).reduce((sum, count) => sum + count, 0);
   };
 
+  // Mapeo actualizado de reacciones con el nuevo emoji para "Me encanta"
+  const getReactionEmoji = (reaction: string) => {
+    const emojiMap: Record<string, string> = {
+      'Me gusta': '👍',
+      'Me encanta': '❤️', // Cambiado de 😍 a ❤️
+      'Celebrar': '🎉',
+      'Interesante': '💡',
+      'De acuerdo': '🤝',
+      'Hacer gracias': '😄'
+    };
+    return emojiMap[reaction] || '👍';
+  };
+
   return (
     <article className="bg-white rounded-2xl shadow-sm border border-slate-200/50 hover:shadow-lg transition-all duration-300 overflow-hidden">
       {/* Header */}
@@ -57,7 +70,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onReaction }) => {
               <p className="text-xs text-slate-500">{formatTimeAgo(post.createdAt)}</p>
             </div>
           </div>
-          <button className="text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-slate-100 rounded-full">
+          <button className="text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-slate-100 rounded-full cursor-pointer">
             <MoreHorizontal className="w-5 h-5" />
           </button>
         </div>
@@ -92,12 +105,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onReaction }) => {
               <div className="flex -space-x-1">
                 {Object.entries(post.reactions).filter(([_, count]) => count > 0).slice(0, 3).map(([reaction]) => (
                   <div key={reaction} className="w-5 h-5 flex items-center justify-center text-sm">
-                    {reaction === 'Me gusta' && '👍'}
-                    {reaction === 'Me encanta' && '😍'}
-                    {reaction === 'Celebrar' && '🎉'}
-                    {reaction === 'Interesante' && '💡'}
-                    {reaction === 'De acuerdo' && '🤝'}
-                    {reaction === 'Hacer gracias' && '😄'}
+                    {getReactionEmoji(reaction)}
                   </div>
                 ))}
               </div>
@@ -123,7 +131,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onReaction }) => {
           
           <button
             onClick={() => setShowComments(!showComments)}
-            className="flex items-center space-x-2 px-4 py-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 font-medium"
+            className="flex items-center space-x-2 px-4 py-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 font-medium cursor-pointer"
           >
             <MessageCircle className="w-5 h-5" />
             <span>Comentar</span>
@@ -131,12 +139,12 @@ const PostCard: React.FC<PostCardProps> = ({ post, onReaction }) => {
         </div>
 
         <div className="flex items-center space-x-2">
-          <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+          <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer">
             <Share2 className="w-5 h-5" />
           </button>
           <button
             onClick={() => setIsBookmarked(!isBookmarked)}
-            className={`p-2 rounded-lg transition-colors ${
+            className={`p-2 rounded-lg transition-colors cursor-pointer ${
               isBookmarked 
                 ? 'text-blue-600 bg-blue-50' 
                 : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
