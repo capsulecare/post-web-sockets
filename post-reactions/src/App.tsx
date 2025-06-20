@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { PostsContainer, CreatePostModal, Header } from './components';
+import PostsContainer from './components/layout/PostsContainer';
+import CreatePostModal from './components/forms/CreatePostModal';
+import Header from './components/layout/Header';
 
 function App() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
