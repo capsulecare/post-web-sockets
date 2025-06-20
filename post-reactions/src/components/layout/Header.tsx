@@ -1,7 +1,7 @@
 import React from 'react';
 import { Plus, Filter, Sparkles } from 'lucide-react';
 import Button from '../ui/Button';
-import Badge from '../ui/Badge';
+import { tagGradients } from '../../constants/tagColors';
 
 interface HeaderProps {
   onCreatePost: () => void;
@@ -9,12 +9,16 @@ interface HeaderProps {
   onTagChange: (tag: string) => void;
 }
 
+// ✅ ACTUALIZADO: Tags con nombres reales y mapeo a gradientes
 const tags = [
-  { id: 'all', label: 'Todos', color: 'bg-gradient-to-r from-purple-500 to-pink-500' },
-  { id: 'tecnologia', label: 'Tecnología', color: 'bg-gradient-to-r from-blue-500 to-cyan-500' },
-  { id: 'emprendimiento', label: 'Emprendimiento', color: 'bg-gradient-to-r from-green-500 to-emerald-500' },
-  { id: 'innovacion', label: 'Innovación', color: 'bg-gradient-to-r from-orange-500 to-red-500' },
-  { id: 'mentoria', label: 'Mentoría', color: 'bg-gradient-to-r from-indigo-500 to-purple-500' }
+  { id: 'all', label: 'Todos', gradient: tagGradients.all },
+  { id: 'Tecnología', label: 'Tecnología', gradient: tagGradients.tecnologia },
+  { id: 'Negocios y Emprendimiento', label: 'Negocios', gradient: tagGradients.negocios },
+  { id: 'Arte y Creatividad', label: 'Arte', gradient: tagGradients.arte },
+  { id: 'Ciencia y Educación', label: 'Ciencia', gradient: tagGradients.ciencia },
+  { id: 'Salud y Bienestar', label: 'Salud', gradient: tagGradients.salud },
+  { id: 'Deportes', label: 'Deportes', gradient: tagGradients.deportes },
+  { id: 'Video Juegos y Entretenimiento', label: 'Gaming', gradient: tagGradients.gaming }
 ];
 
 const Header: React.FC<HeaderProps> = ({ onCreatePost, selectedTag, onTagChange }) => {
@@ -52,7 +56,7 @@ const Header: React.FC<HeaderProps> = ({ onCreatePost, selectedTag, onTagChange 
                 onClick={() => onTagChange(tag.id)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 transform hover:scale-105 cursor-pointer ${
                   selectedTag === tag.id
-                    ? `${tag.color} text-white shadow-lg`
+                    ? `${tag.gradient} text-white shadow-lg`
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >

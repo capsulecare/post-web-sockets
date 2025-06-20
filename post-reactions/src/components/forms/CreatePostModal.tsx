@@ -8,11 +8,18 @@ interface CreatePostModalProps {
   onClose: () => void;
 }
 
+// ✅ ACTUALIZADO: Tags con nombres reales de la base de datos
 const tags = [
-  { id: 'tecnologia', label: 'Tecnología', color: 'bg-blue-500' },
-  { id: 'emprendimiento', label: 'Emprendimiento', color: 'bg-green-500' },
-  { id: 'innovacion', label: 'Innovación', color: 'bg-orange-500' },
-  { id: 'mentoria', label: 'Mentoría', color: 'bg-purple-500' }
+  { id: 'Tecnología', label: 'Tecnología' },
+  { id: 'Negocios y Emprendimiento', label: 'Negocios y Emprendimiento' },
+  { id: 'Arte y Creatividad', label: 'Arte y Creatividad' },
+  { id: 'Ciencia y Educación', label: 'Ciencia y Educación' },
+  { id: 'Idiomas y Cultura', label: 'Idiomas y Cultura' },
+  { id: 'Salud y Bienestar', label: 'Salud y Bienestar' },
+  { id: 'Deportes', label: 'Deportes' },
+  { id: 'Medio ambiente y Sostenibilidad', label: 'Medio ambiente y Sostenibilidad' },
+  { id: 'Desarrollo Personal', label: 'Desarrollo Personal' },
+  { id: 'Video Juegos y Entretenimiento', label: 'Video Juegos y Entretenimiento' }
 ];
 
 const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose }) => {
@@ -104,6 +111,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose }) => {
 
             {/* User Info */}
             <div className="flex items-center space-x-3 mb-4">
+              {/* ✅ CAMBIO: Avatar sin verificación */}
               <Avatar
                 src="https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?w=150"
                 alt="Tu avatar"
@@ -145,19 +153,21 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose }) => {
               <h3 className="text-sm font-semibold text-slate-700 mb-3">
                 Etiquetas (selecciona al menos una)
               </h3>
-              <div className="flex flex-wrap gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 {tags.map((tag) => (
                   <button
                     key={tag.id}
                     type="button"
                     onClick={() => handleTagToggle(tag.id)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 transform hover:scale-105 cursor-pointer ${
+                    className={`p-3 rounded-xl border-2 transition-all duration-200 transform hover:scale-105 cursor-pointer text-left ${
                       selectedTags.includes(tag.id)
-                        ? `${tag.color} text-white shadow-lg`
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-slate-200 hover:border-slate-300 bg-white'
                     }`}
                   >
-                    #{tag.label}
+                    <Badge variant={tag.id} className="mb-1">
+                      #{tag.label}
+                    </Badge>
                   </button>
                 ))}
               </div>
@@ -182,14 +192,11 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose }) => {
                   
                   {selectedTags.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-3">
-                      {selectedTags.map((tagId) => {
-                        const tag = tags.find(t => t.id === tagId);
-                        return tag ? (
-                          <Badge key={tagId} variant={tagId as any}>
-                            #{tag.label}
-                          </Badge>
-                        ) : null;
-                      })}
+                      {selectedTags.map((tagId) => (
+                        <Badge key={tagId} variant={tagId}>
+                          #{tagId}
+                        </Badge>
+                      ))}
                     </div>
                   )}
                   

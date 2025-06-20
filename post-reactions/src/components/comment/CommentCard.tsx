@@ -66,7 +66,6 @@ const CommentCard: React.FC<CommentCardProps> = ({
     }
   };
 
-  // ✅ NUEVO: Log para debug
   console.log(`🔄 Renderizando CommentCard ${comment.id}:`, {
     userReaction: comment.userReaction,
     reactions: comment.reactions,
@@ -76,6 +75,7 @@ const CommentCard: React.FC<CommentCardProps> = ({
   return (
     <div className={`${isReply ? 'ml-8' : ''}`}>
       <div className="flex items-start space-x-3 group">
+        {/* ✅ CAMBIO: Avatar sin verificación */}
         <Avatar
           src={comment.author.avatar}
           alt={comment.author.name}
@@ -90,7 +90,6 @@ const CommentCard: React.FC<CommentCardProps> = ({
                 <p className="text-sm text-slate-600">{comment.author.title}</p>
               </div>
               
-              {/* ✅ CAMBIO 1: Tiempo movido aquí al lado derecho */}
               <div className="flex items-center space-x-2">
                 <span className="text-xs text-slate-500">{formatTimeAgo(comment.createdAt)}</span>
                 <Button
@@ -105,9 +104,7 @@ const CommentCard: React.FC<CommentCardProps> = ({
             <p className="text-slate-800 leading-relaxed">{comment.content}</p>
           </div>
 
-          {/* ✅ CAMBIO 2: Quitamos el conteo de reacciones y el tiempo (ya está arriba) */}
           <div className="flex items-center space-x-2 mt-2">
-            {/* ✅ NUEVO: Key única para forzar re-render del ReactionButton */}
             <ReactionButton
               key={`reaction-${comment.id}-${forceRenderKey || 0}`}
               currentReaction={comment.userReaction || null}

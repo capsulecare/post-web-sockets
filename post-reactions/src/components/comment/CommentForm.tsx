@@ -25,6 +25,7 @@ const CommentForm: React.FC<CommentFormProps> = ({
   return (
     <div className="p-6 border-t border-slate-100">
       <form onSubmit={handleSubmit} className="flex items-start space-x-3">
+        {/* ✅ CAMBIO: Avatar sin verificación */}
         <Avatar
           src="https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?w=150"
           alt="Tu avatar"

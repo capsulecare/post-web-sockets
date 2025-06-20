@@ -24,11 +24,11 @@ const PostHeader: React.FC<PostHeaderProps> = ({ author, tags, createdAt }) => {
     <div className="p-6 pb-4">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
+          {/* ✅ CAMBIO: Quitamos verified del Avatar */}
           <Avatar
             src={author.avatar}
             alt={author.name}
             size="lg"
-            verified={author.verified}
           />
           <div>
             <h3 className="font-semibold text-slate-900 flex items-center space-x-1">
@@ -43,10 +43,10 @@ const PostHeader: React.FC<PostHeaderProps> = ({ author, tags, createdAt }) => {
         </button>
       </div>
 
-      {/* Tags */}
+      {/* ✅ CAMBIO: Tags con colores dinámicos */}
       <div className="flex flex-wrap gap-2 mb-4">
         {tags.map((tag) => (
-          <Badge key={tag} variant={tag as any}>
+          <Badge key={tag} variant={tag}>
             #{tag}
           </Badge>
         ))}
