@@ -1,4 +1,4 @@
-// src/hooks/usePosts.ts - Versión corregida
+// src/hooks/usePosts.ts - Versión ARREGLADA para actualización en vivo
 import { useState, useEffect, useCallback } from 'react';
 import type { Post, Comment, NotificationReaction } from '../types/post';
 
@@ -9,7 +9,6 @@ import { useReactions } from './reactions/useReactions';
 import { 
   parsePostDates, 
   updateCommentReactionsRecursive, 
-  updateCommentUserReaction,
   addCommentToPosts 
 } from './utils/postUtils';
 
@@ -60,75 +59,64 @@ export const usePosts = ({ currentUserId }: UsePostsOptions): UsePostsReturn => 
     setPosts(prevPosts => addCommentToPosts(prevPosts, newComment));
   }, []);
 
-  // ✅ ARREGLADO: Manejador para cambios de reacciones
-  const handleReactionChange = useCallback((reactionNotification: NotificationReaction) => {
+  // ✅ ARREGLADO: Manejador para cambios de reacciones - VERSIÓN SIMPLIFICADA
+  const handleReactionChange = useCallback(async (reactionNotification: NotificationReaction) => {
     console.log('🔄 Procesando notificación de reacción:', reactionNotification);
 
-    // Paso 1: Actualizar conteos de manera síncrona
-    setPosts((prevPosts: Post[]) => {
-      return prevPosts.map((post: Post) => {
-        if (reactionNotification.targetType === 'POST' && post.id === reactionNotification.targetId) {
-          console.log('📝 Actualizando reacciones del post:', post.id);
-          
+    if (reactionNotification.targetType === 'POST') {
+      // Manejar reacciones de posts
+      let userReaction: string | null = null;
+      
+      if (currentUserId) {
+        try {
+          userReaction = await fetchUserReaction(currentUserId, reactionNotification.targetId, 'POST');
+          console.log('👤 UserReaction de POST consultada:', userReaction);
+        } catch (error) {
+          console.error('❌ Error consultando userReaction de POST:', error);
+        }
+      }
+
+      setPosts((prevPosts: Post[]) => {
+        return prevPosts.map((post: Post) => {
+          if (post.id === reactionNotification.targetId) {
+            console.log('📝 Actualizando reacciones del post:', post.id);
+            
+            return {
+              ...post,
+              reactions: reactionNotification.reactionCounts,
+              userReaction: userReaction
+            };
+          }
+          return post;
+        });
+      });
+
+    } else if (reactionNotification.targetType === 'COMMENT') {
+      // ✅ ARREGLADO: Manejar reacciones de comentarios
+      let userReaction: string | null = null;
+      
+      if (currentUserId) {
+        try {
+          userReaction = await fetchUserReaction(currentUserId, reactionNotification.targetId, 'COMMENT');
+          console.log('💬 UserReaction de COMMENT consultada:', userReaction);
+        } catch (error) {
+          console.error('❌ Error consultando userReaction del comentario:', error);
+        }
+      }
+
+      // ✅ ACTUALIZAR TODO EN UNA SOLA OPERACIÓN
+      setPosts((prevPosts: Post[]) => {
+        return prevPosts.map((post: Post) => {
           return {
             ...post,
-            reactions: reactionNotification.reactionCounts,
-            userReaction: post.userReaction // Mantener userReaction actual
+            comments: updateCommentReactionsRecursive(
+              post.comments,
+              reactionNotification,
+              userReaction // ✅ PASAR la userReaction consultada
+            )
           };
-        } else if (reactionNotification.targetType === 'COMMENT') {
-          // ✅ ARREGLADO: Solo actualizar conteos, no userReaction aún
-          const updatedComments = updateCommentReactionsRecursive(
-            post.comments,
-            reactionNotification
-          );
-          return { ...post, comments: updatedComments };
-        }
-        return post;
+        });
       });
-    });
-
-    // Paso 2: Consultar y actualizar userReaction del usuario actual de manera asíncrona
-    if (currentUserId) {
-      if (reactionNotification.targetType === 'POST') {
-        fetchUserReaction(currentUserId, reactionNotification.targetId, 'POST')
-          .then(userReaction => {
-            console.log('👤 UserReaction de POST consultada:', userReaction);
-            
-            setPosts((prevPosts: Post[]) => {
-              return prevPosts.map((post: Post) => {
-                if (post.id === reactionNotification.targetId) {
-                  return { ...post, userReaction: userReaction };
-                }
-                return post;
-              });
-            });
-          })
-          .catch(error => {
-            console.error('❌ Error consultando userReaction de POST:', error);
-          });
-      } else if (reactionNotification.targetType === 'COMMENT') {
-        // ✅ ARREGLADO: Consultar userReaction del comentario
-        fetchUserReaction(currentUserId, reactionNotification.targetId, 'COMMENT')
-          .then(userReaction => {
-            console.log('💬 UserReaction de COMMENT consultada:', userReaction);
-            
-            setPosts((prevPosts: Post[]) => {
-              return prevPosts.map((post: Post) => {
-                return {
-                  ...post,
-                  comments: updateCommentUserReaction(
-                    post.comments,
-                    reactionNotification.targetId,
-                    userReaction
-                  )
-                };
-              });
-            });
-          })
-          .catch(error => {
-            console.error('❌ Error consultando userReaction del comentario:', error);
-          });
-      }
     }
   }, [currentUserId]);
 

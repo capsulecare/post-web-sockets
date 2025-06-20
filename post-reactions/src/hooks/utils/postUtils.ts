@@ -28,33 +28,35 @@ export const parseCommentDates = (comment: any): Comment => {
 };
 
 /**
- * Actualiza reacciones en comentarios recursivamente
- * ✅ ARREGLADO: Ahora mantiene la userReaction existente
+ * ✅ ARREGLADO: Actualiza reacciones en comentarios recursivamente
+ * Ahora actualiza TANTO conteos COMO userReaction en una sola pasada
  */
 export const updateCommentReactionsRecursive = (
   comments: Comment[], 
-  reactionNotification: NotificationReaction
+  reactionNotification: NotificationReaction,
+  userReaction?: string | null // ✅ NUEVO: Parámetro opcional para userReaction
 ): Comment[] => {
   return comments.map(comment => {
     if (comment.id === reactionNotification.targetId && reactionNotification.targetType === 'COMMENT') {
-      console.log(`🔄 Actualizando conteos del comentario ${comment.id}:`, {
-        antes: comment.reactions,
-        despues: reactionNotification.reactionCounts,
-        userReactionAntes: comment.userReaction
+      console.log(`🔄 Actualizando comentario ${comment.id}:`, {
+        conteoAntes: comment.reactions,
+        conteoDespues: reactionNotification.reactionCounts,
+        userReactionAntes: comment.userReaction,
+        userReactionDespues: userReaction !== undefined ? userReaction : comment.userReaction
       });
       
       return {
         ...comment,
         reactions: reactionNotification.reactionCounts,
-        // ✅ MANTENER la userReaction existente (se actualizará por separado)
-        userReaction: comment.userReaction
+        // ✅ ACTUALIZAR userReaction si se proporciona, sino mantener la actual
+        userReaction: userReaction !== undefined ? userReaction : comment.userReaction
       };
     }
     
     if (comment.replies && comment.replies.length > 0) {
       return {
         ...comment,
-        replies: updateCommentReactionsRecursive(comment.replies, reactionNotification)
+        replies: updateCommentReactionsRecursive(comment.replies, reactionNotification, userReaction)
       };
     }
     
@@ -63,7 +65,8 @@ export const updateCommentReactionsRecursive = (
 };
 
 /**
- * ✅ NUEVA FUNCIÓN: Actualiza la userReaction de un comentario específico recursivamente
+ * ✅ SIMPLIFICADO: Función específica para actualizar solo userReaction
+ * (Mantenida para compatibilidad, pero ya no es necesaria)
  */
 export const updateCommentUserReaction = (
   comments: Comment[],
