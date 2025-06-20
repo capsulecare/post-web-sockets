@@ -22,9 +22,10 @@ export interface Post {
   content: string;
   tags: string[];
   createdAt: Date;
-  reactions: Record<string, number>; // Mantenemos Record<string, number> para compatibilidad
+  reactions: Record<string, number>;
   userReaction: string | null;
   comments: Comment[];
+  _lastUpdate?: number; // ✅ NUEVO: Campo para forzar re-renders
 }
 
 // Tipo para notificaciones de WebSocket

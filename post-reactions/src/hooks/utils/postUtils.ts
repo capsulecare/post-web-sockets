@@ -29,12 +29,12 @@ export const parseCommentDates = (comment: any): Comment => {
 
 /**
  * ✅ ARREGLADO: Actualiza reacciones en comentarios recursivamente
- * Ahora actualiza TANTO conteos COMO userReaction en una sola pasada
+ * FUERZA INMUTABILIDAD para que React detecte los cambios
  */
 export const updateCommentReactionsRecursive = (
   comments: Comment[], 
   reactionNotification: NotificationReaction,
-  userReaction?: string | null // ✅ NUEVO: Parámetro opcional para userReaction
+  userReaction?: string | null
 ): Comment[] => {
   return comments.map(comment => {
     if (comment.id === reactionNotification.targetId && reactionNotification.targetType === 'COMMENT') {
@@ -45,51 +45,26 @@ export const updateCommentReactionsRecursive = (
         userReactionDespues: userReaction !== undefined ? userReaction : comment.userReaction
       });
       
-      return {
+      // ✅ CREAR NUEVO OBJETO COMPLETAMENTE - FORZAR INMUTABILIDAD
+      const updatedComment = {
         ...comment,
-        reactions: reactionNotification.reactionCounts,
-        // ✅ ACTUALIZAR userReaction si se proporciona, sino mantener la actual
-        userReaction: userReaction !== undefined ? userReaction : comment.userReaction
+        // ✅ CREAR NUEVO OBJETO para reactions (no reutilizar referencia)
+        reactions: { ...reactionNotification.reactionCounts },
+        // ✅ ACTUALIZAR userReaction
+        userReaction: userReaction !== undefined ? userReaction : comment.userReaction,
+        // ✅ CREAR NUEVO ARRAY para replies (mantener inmutabilidad)
+        replies: comment.replies ? [...comment.replies] : []
       };
+      
+      console.log('✅ Comentario actualizado:', updatedComment);
+      return updatedComment;
     }
     
     if (comment.replies && comment.replies.length > 0) {
+      // ✅ CREAR NUEVO OBJETO para el comentario padre también
       return {
         ...comment,
         replies: updateCommentReactionsRecursive(comment.replies, reactionNotification, userReaction)
-      };
-    }
-    
-    return comment;
-  });
-};
-
-/**
- * ✅ SIMPLIFICADO: Función específica para actualizar solo userReaction
- * (Mantenida para compatibilidad, pero ya no es necesaria)
- */
-export const updateCommentUserReaction = (
-  comments: Comment[],
-  targetId: string,
-  userReaction: string | null
-): Comment[] => {
-  return comments.map(comment => {
-    if (comment.id === targetId) {
-      console.log(`🎯 Actualizando userReaction del comentario ${targetId}:`, {
-        antes: comment.userReaction,
-        despues: userReaction
-      });
-      
-      return {
-        ...comment,
-        userReaction: userReaction
-      };
-    }
-    
-    if (comment.replies && comment.replies.length > 0) {
-      return {
-        ...comment,
-        replies: updateCommentUserReaction(comment.replies, targetId, userReaction)
       };
     }
     

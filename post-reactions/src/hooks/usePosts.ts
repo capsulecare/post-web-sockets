@@ -1,4 +1,4 @@
-// src/hooks/usePosts.ts - Versión ARREGLADA para actualización en vivo
+// src/hooks/usePosts.ts - Versión ARREGLADA con inmutabilidad forzada
 import { useState, useEffect, useCallback } from 'react';
 import type { Post, Comment, NotificationReaction } from '../types/post';
 
@@ -59,7 +59,7 @@ export const usePosts = ({ currentUserId }: UsePostsOptions): UsePostsReturn => 
     setPosts(prevPosts => addCommentToPosts(prevPosts, newComment));
   }, []);
 
-  // ✅ ARREGLADO: Manejador para cambios de reacciones - VERSIÓN SIMPLIFICADA
+  // ✅ ARREGLADO: Manejador para cambios de reacciones - CON INMUTABILIDAD FORZADA
   const handleReactionChange = useCallback(async (reactionNotification: NotificationReaction) => {
     console.log('🔄 Procesando notificación de reacción:', reactionNotification);
 
@@ -81,9 +81,10 @@ export const usePosts = ({ currentUserId }: UsePostsOptions): UsePostsReturn => 
           if (post.id === reactionNotification.targetId) {
             console.log('📝 Actualizando reacciones del post:', post.id);
             
+            // ✅ CREAR NUEVO OBJETO POST - FORZAR INMUTABILIDAD
             return {
               ...post,
-              reactions: reactionNotification.reactionCounts,
+              reactions: { ...reactionNotification.reactionCounts }, // ✅ NUEVO OBJETO
               userReaction: userReaction
             };
           }
@@ -92,7 +93,7 @@ export const usePosts = ({ currentUserId }: UsePostsOptions): UsePostsReturn => 
       });
 
     } else if (reactionNotification.targetType === 'COMMENT') {
-      // ✅ ARREGLADO: Manejar reacciones de comentarios
+      // ✅ ARREGLADO: Manejar reacciones de comentarios CON INMUTABILIDAD
       let userReaction: string | null = null;
       
       if (currentUserId) {
@@ -104,17 +105,25 @@ export const usePosts = ({ currentUserId }: UsePostsOptions): UsePostsReturn => 
         }
       }
 
-      // ✅ ACTUALIZAR TODO EN UNA SOLA OPERACIÓN
+      // ✅ FORZAR ACTUALIZACIÓN CON TIMESTAMP ÚNICO
       setPosts((prevPosts: Post[]) => {
+        const timestamp = Date.now(); // ✅ Timestamp para forzar cambio
+        console.log(`🔄 Forzando actualización de comentarios - Timestamp: ${timestamp}`);
+        
         return prevPosts.map((post: Post) => {
-          return {
+          // ✅ CREAR NUEVO OBJETO POST SIEMPRE
+          const updatedPost = {
             ...post,
             comments: updateCommentReactionsRecursive(
               post.comments,
               reactionNotification,
-              userReaction // ✅ PASAR la userReaction consultada
-            )
+              userReaction
+            ),
+            // ✅ AGREGAR TIMESTAMP PARA FORZAR RE-RENDER
+            _lastUpdate: timestamp
           };
+          
+          return updatedPost;
         });
       });
     }
