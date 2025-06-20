@@ -9,7 +9,6 @@ interface CommentCardProps {
   comment: Comment;
   isReply?: boolean;
   onReaction?: (commentId: string, reactionType: string) => void;
-  // ✅ NUEVO: Key única para forzar re-render
   forceRenderKey?: number;
 }
 
@@ -17,7 +16,7 @@ const CommentCard: React.FC<CommentCardProps> = ({
   comment, 
   isReply = false, 
   onReaction,
-  forceRenderKey // ✅ NUEVO
+  forceRenderKey
 }) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [showReplies, setShowReplies] = useState(false);
@@ -67,10 +66,6 @@ const CommentCard: React.FC<CommentCardProps> = ({
     }
   };
 
-  const getTotalReactions = () => {
-    return Object.values(comment.reactions).reduce((sum, count) => sum + count, 0);
-  };
-
   // ✅ NUEVO: Log para debug
   console.log(`🔄 Renderizando CommentCard ${comment.id}:`, {
     userReaction: comment.userReaction,
@@ -90,47 +85,47 @@ const CommentCard: React.FC<CommentCardProps> = ({
         <div className="flex-1 min-w-0">
           <div className="bg-slate-100 rounded-2xl px-4 py-3">
             <div className="flex items-center justify-between mb-1">
-              <h4 className="font-semibold text-sm text-slate-900">{comment.author.name}</h4>
-              <Button
-                variant="ghost"
-                size="sm"
-                icon={MoreHorizontal}
-                className="text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity p-1"
-              />
-            </div>
-            
-            <p className="text-sm text-slate-600 mb-1">{comment.author.title}</p>
-            <p className="text-slate-800 leading-relaxed">{comment.content}</p>
-          </div>
-
-          <div className="flex items-center space-x-4 mt-2 text-sm">
-            <span className="text-slate-500">{formatTimeAgo(comment.createdAt)}</span>
-            
-            {getTotalReactions() > 0 && (
-              <span className="text-slate-500">{getTotalReactions()} reacciones</span>
-            )}
-
-            <div className="flex items-center space-x-2">
-              {/* ✅ NUEVO: Key única para forzar re-render del ReactionButton */}
-              <ReactionButton
-                key={`reaction-${comment.id}-${forceRenderKey || 0}`} // ✅ KEY ÚNICA
-                currentReaction={comment.userReaction || null}
-                reactions={comment.reactions}
-                onReaction={handleReaction}
-              />
+              <div className="flex-1">
+                <h4 className="font-semibold text-sm text-slate-900">{comment.author.name}</h4>
+                <p className="text-sm text-slate-600">{comment.author.title}</p>
+              </div>
               
-              {!isReply && (
+              {/* ✅ CAMBIO 1: Tiempo movido aquí al lado derecho */}
+              <div className="flex items-center space-x-2">
+                <span className="text-xs text-slate-500">{formatTimeAgo(comment.createdAt)}</span>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowReplyForm(!showReplyForm)}
-                  icon={Reply}
-                  className="text-slate-500 hover:text-blue-600 transition-colors font-medium"
-                >
-                  Responder
-                </Button>
-              )}
+                  icon={MoreHorizontal}
+                  className="text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                />
+              </div>
             </div>
+            
+            <p className="text-slate-800 leading-relaxed">{comment.content}</p>
+          </div>
+
+          {/* ✅ CAMBIO 2: Quitamos el conteo de reacciones y el tiempo (ya está arriba) */}
+          <div className="flex items-center space-x-2 mt-2">
+            {/* ✅ NUEVO: Key única para forzar re-render del ReactionButton */}
+            <ReactionButton
+              key={`reaction-${comment.id}-${forceRenderKey || 0}`}
+              currentReaction={comment.userReaction || null}
+              reactions={comment.reactions}
+              onReaction={handleReaction}
+            />
+            
+            {!isReply && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowReplyForm(!showReplyForm)}
+                icon={Reply}
+                className="text-slate-500 hover:text-blue-600 transition-colors font-medium"
+              >
+                Responder
+              </Button>
+            )}
           </div>
 
           {/* Reply Form */}
@@ -186,11 +181,11 @@ const CommentCard: React.FC<CommentCardProps> = ({
                   </Button>
                   {replies.map((reply) => (
                     <CommentCard 
-                      key={`${reply.id}-${forceRenderKey || 0}`} // ✅ KEY ÚNICA PARA RESPUESTAS
+                      key={`${reply.id}-${forceRenderKey || 0}`}
                       comment={reply} 
                       isReply={true}
                       onReaction={onReaction}
-                      forceRenderKey={forceRenderKey} // ✅ PASAR LA KEY
+                      forceRenderKey={forceRenderKey}
                     />
                   ))}
                 </div>

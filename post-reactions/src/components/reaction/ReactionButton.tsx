@@ -34,10 +34,6 @@ const ReactionButton: React.FC<ReactionButtonProps> = ({
     onReaction('Me gusta');
   };
 
-  const getTotalReactions = () => {
-    return Object.values(reactions).reduce((sum, count) => sum + count, 0);
-  };
-
   const currentReactionConfig = currentReaction ? reactionConfig[currentReaction as keyof typeof reactionConfig] : null;
 
   return (
@@ -66,7 +62,7 @@ const ReactionButton: React.FC<ReactionButtonProps> = ({
         </div>
       )}
 
-      {/* Main Button */}
+      {/* ✅ CAMBIO 3: Main Button SIN el número de reacciones */}
       <button
         onClick={handleQuickReaction}
         onMouseEnter={handleMouseEnter}
@@ -89,11 +85,7 @@ const ReactionButton: React.FC<ReactionButtonProps> = ({
           </>
         )}
         
-        {getTotalReactions() > 0 && (
-          <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded-full text-xs font-semibold">
-            {getTotalReactions()}
-          </span>
-        )}
+        {/* ✅ ELIMINADO: Ya no mostramos el contador de reacciones en el botón */}
       </button>
     </div>
   );
