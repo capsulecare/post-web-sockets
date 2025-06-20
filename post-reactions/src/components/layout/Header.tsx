@@ -1,25 +1,13 @@
 import React from 'react';
 import { Plus, Filter, Sparkles } from 'lucide-react';
 import Button from '../ui/Button';
-import { tagGradients } from '../../constants/tagColors';
+import { FILTER_TAGS, getTagGradient, getTagShortLabel } from '../../constants/tags';
 
 interface HeaderProps {
   onCreatePost: () => void;
   selectedTag: string;
   onTagChange: (tag: string) => void;
 }
-
-// ✅ ACTUALIZADO: Tags con nombres reales y mapeo a gradientes
-const tags = [
-  { id: 'all', label: 'Todos', gradient: tagGradients.all },
-  { id: 'Tecnología', label: 'Tecnología', gradient: tagGradients.tecnologia },
-  { id: 'Negocios y Emprendimiento', label: 'Negocios', gradient: tagGradients.negocios },
-  { id: 'Arte y Creatividad', label: 'Arte', gradient: tagGradients.arte },
-  { id: 'Ciencia y Educación', label: 'Ciencia', gradient: tagGradients.ciencia },
-  { id: 'Salud y Bienestar', label: 'Salud', gradient: tagGradients.salud },
-  { id: 'Deportes', label: 'Deportes', gradient: tagGradients.deportes },
-  { id: 'Video Juegos y Entretenimiento', label: 'Gaming', gradient: tagGradients.gaming }
-];
 
 const Header: React.FC<HeaderProps> = ({ onCreatePost, selectedTag, onTagChange }) => {
   return (
@@ -50,17 +38,18 @@ const Header: React.FC<HeaderProps> = ({ onCreatePost, selectedTag, onTagChange 
         <div className="flex items-center space-x-3">
           <Filter className="w-5 h-5 text-slate-500" />
           <div className="flex flex-wrap gap-2">
-            {tags.map((tag) => (
+            {FILTER_TAGS.map((tag) => (
               <button
                 key={tag.id}
                 onClick={() => onTagChange(tag.id)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 transform hover:scale-105 cursor-pointer ${
                   selectedTag === tag.id
-                    ? `${tag.gradient} text-white shadow-lg`
+                    ? `${getTagGradient(tag.id)} text-white shadow-lg`
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
+                title={tag.description} // ✅ NUEVO: Tooltip con descripción
               >
-                {tag.label}
+                {getTagShortLabel(tag.id)}
               </button>
             ))}
           </div>

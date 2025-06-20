@@ -1,5 +1,7 @@
-// src/constants/tagColors.ts
-export const   : Record<string, string> = {
+// src/constants/tagColors.ts - Solo colores para badges
+import { AVAILABLE_TAGS } from './tags';
+
+export const tagColors: Record<string, string> = {
   // 🔵 Tecnología - Azul (innovación, digital)
   'Tecnología': 'bg-blue-100 text-blue-800 border-blue-200',
   
@@ -39,7 +41,7 @@ export const getTagColor = (tagName: string): string => {
   return tagColors[tagName] || tagColors.default;
 };
 
-// Colores para gradientes en botones (Header)
+// ✅ DEPRECATED: Usar TAG_GRADIENT_MAP de tags.ts en su lugar
 export const tagGradients: Record<string, string> = {
   'all': 'bg-gradient-to-r from-purple-500 to-pink-500',
   'tecnologia': 'bg-gradient-to-r from-blue-500 to-cyan-500',

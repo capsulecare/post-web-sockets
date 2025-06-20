@@ -3,24 +3,11 @@ import { X, Image, Video, FileText, Hash, Users } from 'lucide-react';
 import Button from '../ui/Button';
 import Avatar from '../ui/Avatar';
 import Badge from '../ui/Badge';
+import { AVAILABLE_TAGS, getTagLabel } from '../../constants/tags';
 
 interface CreatePostModalProps {
   onClose: () => void;
 }
-
-// ✅ ACTUALIZADO: Tags con nombres reales de la base de datos
-const tags = [
-  { id: 'Tecnología', label: 'Tecnología' },
-  { id: 'Negocios y Emprendimiento', label: 'Negocios y Emprendimiento' },
-  { id: 'Arte y Creatividad', label: 'Arte y Creatividad' },
-  { id: 'Ciencia y Educación', label: 'Ciencia y Educación' },
-  { id: 'Idiomas y Cultura', label: 'Idiomas y Cultura' },
-  { id: 'Salud y Bienestar', label: 'Salud y Bienestar' },
-  { id: 'Deportes', label: 'Deportes' },
-  { id: 'Medio ambiente y Sostenibilidad', label: 'Medio ambiente y Sostenibilidad' },
-  { id: 'Desarrollo Personal', label: 'Desarrollo Personal' },
-  { id: 'Video Juegos y Entretenimiento', label: 'Video Juegos y Entretenimiento' }
-];
 
 const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose }) => {
   const [content, setContent] = useState('');
@@ -111,7 +98,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose }) => {
 
             {/* User Info */}
             <div className="flex items-center space-x-3 mb-4">
-              {/* ✅ CAMBIO: Avatar sin verificación */}
               <Avatar
                 src="https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?w=150"
                 alt="Tu avatar"
@@ -148,13 +134,13 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose }) => {
               </div>
             </div>
 
-            {/* Tags Selection */}
+            {/* ✅ ACTUALIZADO: Tags Selection usando AVAILABLE_TAGS */}
             <div className="mb-6">
               <h3 className="text-sm font-semibold text-slate-700 mb-3">
                 Etiquetas (selecciona al menos una)
               </h3>
               <div className="grid grid-cols-2 gap-2">
-                {tags.map((tag) => (
+                {AVAILABLE_TAGS.map((tag) => (
                   <button
                     key={tag.id}
                     type="button"
@@ -164,10 +150,15 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose }) => {
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-slate-200 hover:border-slate-300 bg-white'
                     }`}
+                    title={tag.description} // ✅ NUEVO: Tooltip con descripción
                   >
                     <Badge variant={tag.id} className="mb-1">
-                      #{tag.label}
+                      #{tag.shortLabel || tag.label}
                     </Badge>
+                    {/* ✅ NUEVO: Mostrar descripción en texto pequeño */}
+                    <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                      {tag.description}
+                    </p>
                   </button>
                 ))}
               </div>
@@ -194,7 +185,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose }) => {
                     <div className="flex flex-wrap gap-2 mb-3">
                       {selectedTags.map((tagId) => (
                         <Badge key={tagId} variant={tagId}>
-                          #{tagId}
+                          #{getTagLabel(tagId)}
                         </Badge>
                       ))}
                     </div>
@@ -214,6 +205,11 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose }) => {
               <div className="text-sm text-slate-600">
                 {selectedTags.length === 0 && (
                   <span className="text-red-500">Selecciona al menos una etiqueta</span>
+                )}
+                {selectedTags.length > 0 && (
+                  <span className="text-green-600">
+                    ✓ {selectedTags.length} etiqueta{selectedTags.length > 1 ? 's' : ''} seleccionada{selectedTags.length > 1 ? 's' : ''}
+                  </span>
                 )}
               </div>
               
