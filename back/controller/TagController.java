@@ -11,9 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 import java.util.Optional;
@@ -52,10 +49,13 @@ public class TagController {
 
     /**
      * GET /api/tags/search?name={name} - Busca una etiqueta por su nombre
-     * MEJOR PRÁCTICA: Usar query parameter para búsquedas
      */
     @GetMapping("/search")
     public ResponseEntity<Tag> searchTagByName(@RequestParam String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        
         Optional<Tag> tag = tagService.getTagByName(name);
         return tag.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -66,9 +66,14 @@ public class TagController {
      * Body: { "nombreEtiqueta": "nueva-etiqueta" }
      */
     @PostMapping
-    public ResponseEntity<Tag> createTag(@Valid @RequestBody CreateTagRequest request) {
+    public ResponseEntity<Tag> createTag(@RequestBody CreateTagRequest request) {
+        // Validación manual
+        if (request.getNombreEtiqueta() == null || request.getNombreEtiqueta().trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        
         try {
-            Tag createdTag = tagService.createTag(request.getNombreEtiqueta());
+            Tag createdTag = tagService.createTag(request.getNombreEtiqueta().trim());
             return new ResponseEntity<>(createdTag, HttpStatus.CREATED);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -92,15 +97,20 @@ public class TagController {
 
     /**
      * POST /api/posts/{postId}/tags - Agrega etiquetas a un post
-     * MEJOR PRÁCTICA: Usar path anidado para recursos relacionados
-     * Header: X-User-ID: 1 (opcional, mejor práctica para autenticación)
+     * Header: X-User-ID: 1 (opcional)
      * Body: { "tagNames": ["etiqueta1", "etiqueta2"] }
      */
     @PostMapping("/posts/{postId}/tags")
     public ResponseEntity<PostDTO> addTagsToPost(
             @PathVariable Long postId,
-            @Valid @RequestBody TagsRequest request,
+            @RequestBody TagsRequest request,
             @RequestHeader(value = "X-User-ID", required = false) Long currentUserId) {
+        
+        // Validación manual
+        if (request.getTagNames() == null || request.getTagNames().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        
         try {
             Post updatedPost = tagService.addTagsToPost(postId, request.getTagNames());
             
@@ -117,13 +127,18 @@ public class TagController {
 
     /**
      * PUT /api/posts/{postId}/tags - Reemplaza todas las etiquetas de un post
-     * MEJOR PRÁCTICA: PUT para reemplazar completamente el recurso
      */
     @PutMapping("/posts/{postId}/tags")
     public ResponseEntity<PostDTO> replacePostTags(
             @PathVariable Long postId,
-            @Valid @RequestBody TagsRequest request,
+            @RequestBody TagsRequest request,
             @RequestHeader(value = "X-User-ID", required = false) Long currentUserId) {
+        
+        // Validación manual
+        if (request.getTagNames() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        
         try {
             Post updatedPost = tagService.setTagsToPost(postId, request.getTagNames());
             
@@ -140,13 +155,18 @@ public class TagController {
 
     /**
      * DELETE /api/posts/{postId}/tags - Remueve etiquetas específicas de un post
-     * MEJOR PRÁCTICA: DELETE con body para especificar qué eliminar
      */
     @DeleteMapping("/posts/{postId}/tags")
     public ResponseEntity<PostDTO> removeTagsFromPost(
             @PathVariable Long postId,
-            @Valid @RequestBody TagsRequest request,
+            @RequestBody TagsRequest request,
             @RequestHeader(value = "X-User-ID", required = false) Long currentUserId) {
+        
+        // Validación manual
+        if (request.getTagNames() == null || request.getTagNames().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        
         try {
             Post updatedPost = tagService.removeTagsFromPost(postId, request.getTagNames());
             
@@ -163,7 +183,6 @@ public class TagController {
 
     /**
      * GET /api/tags/{tagName}/posts - Obtiene posts por etiqueta
-     * ALTERNATIVA: GET /api/posts?tag={tagName}&userId={userId}
      */
     @GetMapping("/{tagName}/posts")
     public ResponseEntity<List<PostDTO>> getPostsByTag(
@@ -171,10 +190,15 @@ public class TagController {
             @RequestParam(value = "userId", required = false) Long currentUserId,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
+        
+        if (tagName == null || tagName.trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        
         try {
             List<Post> posts = tagService.getPostsByTag(tagName);
             
-            // Aplicar paginación si es necesario
+            // Aplicar paginación
             List<PostDTO> postDTOs = posts.stream()
                     .skip((long) page * size)
                     .limit(size)
@@ -189,13 +213,12 @@ public class TagController {
         }
     }
 
-    // ========== ENDPOINTS ALTERNATIVOS (MANTENEMOS COMPATIBILIDAD) ==========
+    // ========== ENDPOINT LEGACY (COMPATIBILIDAD) ==========
 
     /**
-     * DEPRECATED: Usar /api/posts/{postId}/tags en su lugar
-     * Mantenemos para compatibilidad con frontend actual
+     * POST /api/tags/add-to-post/{postId} - Versión legacy
+     * Mantiene compatibilidad con implementación anterior
      */
-    @Deprecated
     @PostMapping("/add-to-post/{postId}")
     public ResponseEntity<PostDTO> addTagsToPostLegacy(
             @PathVariable Long postId,
@@ -204,11 +227,9 @@ public class TagController {
         return addTagsToPost(postId, request, currentUserId);
     }
 
-    // ========== DTOs CON VALIDACIÓN ==========
+    // ========== DTOs SIN VALIDATION ==========
 
     public static class CreateTagRequest {
-        @NotNull(message = "El nombre de la etiqueta es obligatorio")
-        @NotEmpty(message = "El nombre de la etiqueta no puede estar vacío")
         private String nombreEtiqueta;
 
         public String getNombreEtiqueta() {
@@ -221,8 +242,6 @@ public class TagController {
     }
 
     public static class TagsRequest {
-        @NotNull(message = "La lista de etiquetas es obligatoria")
-        @NotEmpty(message = "Debe proporcionar al menos una etiqueta")
         private List<String> tagNames;
 
         public List<String> getTagNames() {
