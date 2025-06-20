@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/tags")
+@RequestMapping("/api")
 public class TagController {
 
     private final TagService tagService;
@@ -28,10 +28,12 @@ public class TagController {
         this.postService = postService;
     }
 
+    // ========== ENDPOINTS PARA TAGS ==========
+
     /**
      * GET /api/tags - Obtiene todas las etiquetas disponibles
      */
-    @GetMapping
+    @GetMapping("/tags")
     public ResponseEntity<List<Tag>> getAllTags() {
         List<Tag> tags = tagService.getAllTags();
         return ResponseEntity.ok(tags);
@@ -40,7 +42,7 @@ public class TagController {
     /**
      * GET /api/tags/{id} - Obtiene una etiqueta por su ID
      */
-    @GetMapping("/{id}")
+    @GetMapping("/tags/{id}")
     public ResponseEntity<Tag> getTagById(@PathVariable Long id) {
         Optional<Tag> tag = tagService.getTagById(id);
         return tag.map(ResponseEntity::ok)
@@ -50,7 +52,7 @@ public class TagController {
     /**
      * GET /api/tags/search?name={name} - Busca una etiqueta por su nombre
      */
-    @GetMapping("/search")
+    @GetMapping("/tags/search")
     public ResponseEntity<Tag> searchTagByName(@RequestParam String name) {
         if (name == null || name.trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
@@ -65,7 +67,7 @@ public class TagController {
      * POST /api/tags - Crea una nueva etiqueta
      * Body: { "nombreEtiqueta": "nueva-etiqueta" }
      */
-    @PostMapping
+    @PostMapping("/tags")
     public ResponseEntity<Tag> createTag(@RequestBody CreateTagRequest request) {
         // Validación manual
         if (request.getNombreEtiqueta() == null || request.getNombreEtiqueta().trim().isEmpty()) {
@@ -83,7 +85,7 @@ public class TagController {
     /**
      * DELETE /api/tags/{id} - Elimina una etiqueta
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/tags/{id}")
     public ResponseEntity<Void> deleteTag(@PathVariable Long id) {
         try {
             tagService.deleteTag(id);
@@ -96,9 +98,9 @@ public class TagController {
     // ========== ENDPOINTS PARA MANEJAR TAGS EN POSTS ==========
 
     /**
-     * POST /api/posts/{postId}/tags - Agrega etiquetas a un post
+     * ✅ CORREGIDO: POST /api/posts/{postId}/tags - Agrega etiquetas a un post
      * Header: userId: 1 (opcional)
-     * Body: { "tagNames": ["etiqueta1", "etiqueta2"] }
+     * Body: { "tagNames": ["Tecnología", "Ciencia y Educación"] }
      */
     @PostMapping("/posts/{postId}/tags")
     public ResponseEntity<PostDTO> addTagsToPost(
@@ -126,7 +128,7 @@ public class TagController {
     }
 
     /**
-     * PUT /api/posts/{postId}/tags - Reemplaza todas las etiquetas de un post
+     * ✅ CORREGIDO: PUT /api/posts/{postId}/tags - Reemplaza todas las etiquetas de un post
      */
     @PutMapping("/posts/{postId}/tags")
     public ResponseEntity<PostDTO> replacePostTags(
@@ -154,7 +156,7 @@ public class TagController {
     }
 
     /**
-     * DELETE /api/posts/{postId}/tags - Remueve etiquetas específicas de un post
+     * ✅ CORREGIDO: DELETE /api/posts/{postId}/tags - Remueve etiquetas específicas de un post
      */
     @DeleteMapping("/posts/{postId}/tags")
     public ResponseEntity<PostDTO> removeTagsFromPost(
@@ -184,7 +186,7 @@ public class TagController {
     /**
      * GET /api/tags/{tagName}/posts - Obtiene posts por etiqueta
      */
-    @GetMapping("/{tagName}/posts")
+    @GetMapping("/tags/{tagName}/posts")
     public ResponseEntity<List<PostDTO>> getPostsByTag(
             @PathVariable String tagName,
             @RequestParam(value = "currentUserId", required = false) Long currentUserId,
@@ -211,20 +213,6 @@ public class TagController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-    }
-
-    // ========== ENDPOINT LEGACY (COMPATIBILIDAD) ==========
-
-    /**
-     * POST /api/tags/add-to-post/{postId} - Versión legacy
-     * Mantiene compatibilidad con implementación anterior
-     */
-    @PostMapping("/add-to-post/{postId}")
-    public ResponseEntity<PostDTO> addTagsToPostLegacy(
-            @PathVariable Long postId,
-            @RequestBody TagsRequest request,
-            @RequestParam(value = "currentUserId", required = false) Long currentUserId) {
-        return addTagsToPost(postId, request, currentUserId);
     }
 
     // ========== DTOs SIN VALIDATION ==========
